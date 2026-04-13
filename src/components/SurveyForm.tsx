@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'motion/react';
 import { Question, QuestionType, Survey } from '../types';
 import SurveyResponse from './SurveyResponse';
+import { api } from '../lib/api';
 
 export default function SurveyForm() {
   const navigate = useNavigate();
@@ -63,20 +64,16 @@ export default function SurveyForm() {
 
   const saveSurvey = async () => {
     const isEdit = id && id !== 'new';
-    const url = isEdit ? `/api/surveys/${id}` : '/api/surveys';
-    const method = isEdit ? 'PUT' : 'POST';
     const surveyData: any = { title, description, questions, status };
     if (startDate) surveyData.start_date = new Date(startDate).toISOString();
     if (endDate) surveyData.end_date = new Date(endDate).toISOString();
 
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(surveyData)
-    });
-    if (response.ok) {
-      navigate('/surveys');
+    if (isEdit) {
+      await api.put(`/surveys/${id}`, surveyData);
+    } else {
+      await api.post('/surveys', surveyData);
     }
+    navigate('/surveys');
   };
 
   return (
