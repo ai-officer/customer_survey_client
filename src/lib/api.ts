@@ -49,7 +49,13 @@ export const api = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData,
     }).then(async (res) => {
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+      }
       if (!res.ok) throw new Error(data.detail || 'Login failed');
       return data as T;
     }),
