@@ -119,8 +119,7 @@ export default function SurveyList() {
   });
 
   const copyLink = (id: string) => {
-    const origin = process.env.APP_URL || window.location.origin;
-    const url = `${origin}/s/${id}`;
+    const url = `${window.location.origin}/s/${id}`;
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -523,7 +522,7 @@ export default function SurveyList() {
                 <div className="bg-white p-4 rounded-2xl border border-gray-100 inline-block mx-auto">
                   <QRCodeSVG
                     id={`qr-code-${qrSurvey.id}`}
-                    value={`${process.env.APP_URL || window.location.origin}/s/${qrSurvey.id}`}
+                    value={`${window.location.origin}/s/${qrSurvey.id}`}
                     size={200}
                     level="H"
                     includeMargin={true}
