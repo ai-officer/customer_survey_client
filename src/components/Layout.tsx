@@ -1,20 +1,143 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><KeyRound size={18} /></div>
+            <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+            <X size={20} />
+          </button>
+        </div>
+
+        {success ? (
+          <div className="text-center py-6 space-y-3">
+            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+              <KeyRound size={24} />
+            </div>
+            <p className="font-semibold text-gray-900">Password changed successfully!</p>
+            <button onClick={onClose} className="mt-2 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+              <input
+                type="password" required value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
+              <input
+                type="password" required value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
+              <input
+                type="password" required value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+            <div className="flex space-x-3 pt-2">
+              <button type="button" onClick={onClose}
+                className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}
+                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
+                {loading ? 'Saving...' : 'Change Password'}
+              </button>
+            </div>
+          </form>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [showChangePassword, setShowChangePassword] = React.useState(false);
+  const [showUserMenu, setShowUserMenu] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
+  const userMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close user menu on outside click
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -94,6 +217,13 @@ export default function Layout({ children }: LayoutProps) {
               <p className="text-xs text-gray-400 capitalize">{user.role}</p>
             </div>
           )}
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="flex items-center w-full p-3 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all group"
+          >
+            <KeyRound size={22} className="flex-shrink-0" />
+            {isSidebarOpen && <span className="ml-3 font-medium">Change Password</span>}
+          </button>
           <button onClick={handleLogout} className="flex items-center w-full p-3 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group">
             <LogOut size={22} className="group-hover:translate-x-1 transition-transform flex-shrink-0" />
             {isSidebarOpen && <span className="ml-3 font-medium">Logout</span>}
@@ -138,6 +268,12 @@ export default function Layout({ children }: LayoutProps) {
                     <p className="text-sm text-gray-400 capitalize">{user.role}</p>
                   </div>
                 )}
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); setShowChangePassword(true); }}
+                  className="flex items-center w-full p-4 text-indigo-600 bg-indigo-50 rounded-2xl font-bold"
+                >
+                  <KeyRound size={24} className="mr-4" /> Change Password
+                </button>
                 <button onClick={handleLogout} className="flex items-center w-full p-4 text-red-600 bg-red-50 rounded-2xl font-bold">
                   <LogOut size={24} className="mr-4" /> Logout
                 </button>
@@ -151,14 +287,42 @@ export default function Layout({ children }: LayoutProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="hidden md:flex h-16 bg-white border-b border-gray-200 items-center justify-between px-8 sticky top-0 z-30">
           <h1 className="text-lg font-semibold text-gray-800">{pageTitle}</h1>
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.full_name || ''}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role || ''}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
-              {initials}
-            </div>
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowUserMenu(v => !v)}
+              className="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-3 py-2 transition-all"
+            >
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{user?.full_name || ''}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role || ''}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                {initials}
+              </div>
+            </button>
+            <AnimatePresence>
+              {showUserMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-50"
+                >
+                  <button
+                    onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
+                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  >
+                    <KeyRound size={16} className="mr-2" /> Change Password
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                  >
+                    <LogOut size={16} className="mr-2" /> Logout
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </header>
 
@@ -189,6 +353,11 @@ export default function Layout({ children }: LayoutProps) {
           </Link>
         ))}
       </nav>
+
+      {/* Change Password Modal */}
+      <AnimatePresence>
+        {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

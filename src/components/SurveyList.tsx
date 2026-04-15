@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, ExternalLink, QrCode, X, Download, CopyPlus, Mail, Bell } from 'lucide-react';
+import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, ExternalLink, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Survey } from '../types';
@@ -104,6 +104,7 @@ export default function SurveyList() {
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [showArchived, setShowArchived] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [qrSurvey, setQrSurvey] = React.useState<Survey | null>(null);
   const [previewSurvey, setPreviewSurvey] = React.useState<Survey | null>(null);
@@ -112,11 +113,18 @@ export default function SurveyList() {
   const [distributeSurvey, setDistributeSurvey] = React.useState<Survey | null>(null);
 
   const filteredSurveys = surveys.filter(s => {
-    const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         s.description.toLowerCase().includes(searchQuery.toLowerCase());
+    // Hide archived unless explicitly shown
+    if (!showArchived && s.status === 'archived') return false;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      s.title.toLowerCase().includes(q) ||
+      s.description.toLowerCase().includes(q) ||
+      (s.createdByName && s.createdByName.toLowerCase().includes(q));
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const archivedCount = surveys.filter(s => s.status === 'archived').length;
 
   const copyLink = (id: string) => {
     const url = `${window.location.origin}/s/${id}`;
@@ -211,7 +219,7 @@ export default function SurveyList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search surveys..."
+            placeholder="Search by title, description, or creator..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
@@ -226,8 +234,24 @@ export default function SurveyList() {
             <option value="all">All Status</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
-            <option value="archived">Archived</option>
+            {showArchived && <option value="archived">Archived</option>}
           </select>
+          <button
+            onClick={() => {
+              setShowArchived(v => !v);
+              if (statusFilter === 'archived') setStatusFilter('all');
+            }}
+            className={cn(
+              "flex items-center px-3 py-2 rounded-xl text-sm font-medium border transition-all",
+              showArchived
+                ? "bg-gray-100 text-gray-700 border-gray-300"
+                : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+            )}
+            title={showArchived ? "Hide archived surveys" : "Show archived surveys"}
+          >
+            {showArchived ? <EyeOff size={16} className="mr-1.5" /> : <Archive size={16} className="mr-1.5" />}
+            {showArchived ? 'Hide Archived' : `Archived${archivedCount > 0 ? ` (${archivedCount})` : ''}`}
+          </button>
           <Link
             to="/surveys/new"
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
@@ -276,6 +300,9 @@ export default function SurveyList() {
                       <div>
                         <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{survey.title}</p>
                         <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{survey.description}</p>
+                        {survey.createdByName && (
+                          <p className="text-xs text-gray-400 mt-0.5">By {survey.createdByName}</p>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">

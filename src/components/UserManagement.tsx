@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Edit2, UserX, X } from 'lucide-react';
+import { Plus, Edit2, UserX, X, KeyRound } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { api } from '../lib/api';
 import { cn } from '../lib/utils';
@@ -90,10 +90,15 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              {isEdit ? 'New Password (leave blank to keep)' : 'Password'}
+              {isEdit ? (
+                <span className="flex items-center gap-1.5">
+                  <KeyRound size={14} className="text-gray-400" />
+                  Reset Password <span className="text-gray-400 font-normal">(leave blank to keep current)</span>
+                </span>
+              ) : 'Password'}
             </label>
             <input type="password" required={!isEdit} value={password} onChange={e => setPassword(e.target.value)}
-              placeholder={isEdit ? 'Leave blank to keep current' : ''}
+              placeholder={isEdit ? 'Enter new password to reset' : ''}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
           </div>
           <div className="flex space-x-3 pt-2">

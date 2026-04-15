@@ -17,6 +17,7 @@ export interface Survey {
   startDate?: string | null;
   endDate?: string | null;
   questions: Question[];
+  createdByName?: string | null;
 }
 
 export interface SurveyResponse {

@@ -2,6 +2,7 @@ import React from 'react';
 import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { api } from '../lib/api';
+import { Survey } from '../types';
 
 const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -23,10 +24,17 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => 
 
 export default function Dashboard() {
   const [stats, setStats] = React.useState<any>(null);
+  const [surveys, setSurveys] = React.useState<Survey[]>([]);
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('');
+  const [surveyFilter, setSurveyFilter] = React.useState('');
   const [loading, setLoading] = React.useState(true);
+
+  // Load survey list for the picker (non-archived by default)
+  React.useEffect(() => {
+    api.get<Survey[]>('/surveys').then(data => setSurveys(data)).catch(() => {});
+  }, []);
 
   const fetchStats = () => {
     setLoading(true);
@@ -34,13 +42,23 @@ export default function Dashboard() {
     if (startDate) params.append('start_date', new Date(startDate).toISOString());
     if (endDate) params.append('end_date', new Date(endDate).toISOString());
     if (statusFilter) params.append('status', statusFilter);
+    if (surveyFilter) params.append('survey_id', surveyFilter);
     const qs = params.toString() ? `?${params}` : '';
     api.get<any>(`/analytics${qs}`)
       .then(data => { setStats(data); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
-  React.useEffect(() => { fetchStats(); }, [startDate, endDate, statusFilter]);
+  React.useEffect(() => { fetchStats(); }, [startDate, endDate, statusFilter, surveyFilter]);
+
+  const hasFilter = startDate || endDate || statusFilter || surveyFilter;
+
+  const clearFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setStatusFilter('');
+    setSurveyFilter('');
+  };
 
   return (
     <div className="space-y-8">
@@ -53,18 +71,34 @@ export default function Dashboard() {
         <span className="text-gray-400 text-sm">to</span>
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
           className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="">All Surveys</option>
+        <select
+          value={statusFilter}
+          onChange={e => { setStatusFilter(e.target.value); setSurveyFilter(''); }}
+          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">All Status</option>
           <option value="published">Published</option>
           <option value="draft">Draft</option>
           <option value="archived">Archived</option>
         </select>
-        {(startDate || endDate || statusFilter) && (
-          <button onClick={() => { setStartDate(''); setEndDate(''); setStatusFilter(''); }}
+        <select
+          value={surveyFilter}
+          onChange={e => { setSurveyFilter(e.target.value); setStatusFilter(''); }}
+          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 max-w-[220px]"
+        >
+          <option value="">All Surveys</option>
+          {surveys.map(s => (
+            <option key={s.id} value={s.id}>{s.title}</option>
+          ))}
+        </select>
+        {hasFilter && (
+          <button onClick={clearFilters}
             className="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 transition-all">
             Clear
           </button>
+        )}
+        {loading && (
+          <span className="text-xs text-indigo-400 font-medium animate-pulse ml-auto">Updating...</span>
         )}
       </div>
 
