@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, KeyRound } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,35 @@ import { api } from '../lib/api';
 
 interface LayoutProps {
   children: React.ReactNode;
+}
+
+function PasswordInput({ value, onChange, placeholder, required }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  const [show, setShow] = React.useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        required={required}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+      />
+      <button
+        type="button"
+        onClick={() => setShow(v => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        tabIndex={-1}
+      >
+        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
 }
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
@@ -78,28 +107,15 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
-              <input
-                type="password" required value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
+              <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <input
-                type="password" required value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
+              <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
-              <input
-                type="password" required value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
+              <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
             </div>
             <div className="flex space-x-3 pt-2">
               <button type="button" onClick={onClose}
