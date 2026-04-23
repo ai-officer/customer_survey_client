@@ -117,10 +117,13 @@ export default function Dashboard() {
         <StatCard icon={ThumbsUp} label="NPS Score" value={loading ? '—' : stats?.nps ?? 0} subtitle="Net Promoter Score" color="bg-purple-600" />
       </div>
 
-      {/* Engagement Panel (eNPS + Participation + Driver Heatmap) */}
+      {/* Engagement Panel (Rating distribution + Participation + Driver Heatmap) */}
       <EngagementPanel
-        participationRate={stats?.completionRate ?? null}
-        participationChange={null}
+        ratingDistribution={stats?.ratingDistribution ?? null}
+        completionRate={stats?.completionRate ?? null}
+        previousCompletionRate={stats?.previousCompletionRate ?? null}
+        departmentEngagement={stats?.departmentEngagement ?? null}
+        loading={loading}
       />
 
       {/* Charts */}

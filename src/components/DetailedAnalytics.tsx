@@ -22,6 +22,7 @@ export default function DetailedAnalytics() {
   const [surveyMeta, setSurveyMeta] = React.useState<Survey | null>(null);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [responsesError, setResponsesError] = React.useState('');
+  const [dashStats, setDashStats] = React.useState<any>(null);
 
   const fetchData = () => {
     setLoading(true);
@@ -29,9 +30,19 @@ export default function DetailedAnalytics() {
     if (startDate) params.append('start_date', new Date(startDate).toISOString());
     if (endDate) params.append('end_date', new Date(endDate).toISOString());
     const qs = params.toString() ? `?${params}` : '';
+
+    // Per-survey analytics (custom shape)
     api.get<any>(`/analytics/${id}${qs}`)
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
+
+    // Dashboard analytics scoped to this survey — provides ratingDistribution,
+    // completionRate, previousCompletionRate, and departmentEngagement for the panel.
+    const dashParams = new URLSearchParams(params);
+    dashParams.append('survey_id', id || '');
+    api.get<any>(`/analytics?${dashParams.toString()}`)
+      .then(d => setDashStats(d))
+      .catch(() => setDashStats(null));
   };
 
   const fetchResponses = () => {
@@ -151,10 +162,13 @@ export default function DetailedAnalytics() {
         </div>
       </div>
 
-      {/* Engagement Panel (eNPS + Participation + Driver Heatmap) */}
+      {/* Engagement Panel (Rating distribution + Participation + Driver Heatmap) */}
       <EngagementPanel
-        participationRate={data?.completionRate ? parseFloat(String(data.completionRate).replace('%', '')) : null}
-        participationChange={null}
+        ratingDistribution={dashStats?.ratingDistribution ?? null}
+        completionRate={dashStats?.completionRate ?? null}
+        previousCompletionRate={dashStats?.previousCompletionRate ?? null}
+        departmentEngagement={dashStats?.departmentEngagement ?? null}
+        loading={loading}
       />
 
       {/* Charts */}
