@@ -3,8 +3,6 @@ import { Info, TrendingDown, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { cn } from '../lib/utils';
 
-const HEATMAP_TABS = ['Teams', 'Locations', 'Reporting Manager', 'Gender', 'Employee type'] as const;
-
 const HEATMAP_COLUMNS = [
   'Participation Rate',
   'e-NPS',
@@ -71,8 +69,6 @@ export default function EngagementPanel({
   departmentEngagement = null,
   loading = false,
 }: EngagementPanelProps) {
-  const [activeTab, setActiveTab] = React.useState<typeof HEATMAP_TABS[number]>('Teams');
-
   // eNPS bar chart data — derived from the 1–5 rating distribution.
   const chartData = React.useMemo(() => {
     const buckets = ratingDistribution ?? [];
@@ -167,101 +163,74 @@ export default function EngagementPanel({
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-6 border-b border-gray-200">
-          {HEATMAP_TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                'pb-2 text-sm transition-all -mb-px border-b-2',
-                activeTab === tab
-                  ? 'border-indigo-600 text-indigo-600 font-semibold'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'
-              )}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Heatmap Table */}
-        {activeTab === 'Teams' ? (
-          rows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-400 italic">
-              {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
-                <thead>
-                  <tr>
-                    <th className="w-32 text-left font-normal text-gray-400 pb-2 text-xs">…</th>
-                    {HEATMAP_COLUMNS.map((col) => (
-                      <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
-                        <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => {
-                    const participation = row.participationRate;
-                    const nps = row.nps;
-                    const cells: Array<number | null> = [
-                      participation ?? null,
-                      nps ?? null,
-                      null, null, null, null, null, // driver columns: awaits driver_category tagging
-                    ];
-                    return (
-                      <tr key={row.department}>
-                        <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
-                          {row.department}
-                        </td>
-                        {cells.map((value, colIdx) => {
-                          if (value == null) {
-                            return (
-                              <td key={colIdx} className="p-0">
-                                <div
-                                  className={cn(
-                                    'h-8 min-w-16 rounded-md flex items-center justify-center text-xs border',
-                                    colIdx >= PLACEHOLDER_COL_START
-                                      ? 'bg-gray-50 border-gray-100 text-gray-300'
-                                      : 'bg-gray-50 border-gray-100 text-gray-400'
-                                  )}
-                                  title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
-                                >
-                                  —
-                                </div>
-                              </td>
-                            );
-                          }
-                          const { bg, text } = cellColor(colIdx, value);
+        {/* Heatmap Table (Teams) */}
+        {rows.length === 0 ? (
+          <div className="py-10 text-center text-sm text-gray-400 italic">
+            {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
+              <thead>
+                <tr>
+                  <th className="w-32 text-left font-normal text-gray-400 pb-2 text-xs">Team</th>
+                  {HEATMAP_COLUMNS.map((col) => (
+                    <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
+                      <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const cells: Array<number | null> = [
+                    row.participationRate ?? null,
+                    row.nps ?? null,
+                    null, null, null, null, null, // driver columns: awaits driver_category tagging
+                  ];
+                  return (
+                    <tr key={row.department}>
+                      <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
+                        {row.department}
+                      </td>
+                      {cells.map((value, colIdx) => {
+                        if (value == null) {
                           return (
                             <td key={colIdx} className="p-0">
                               <div
                                 className={cn(
-                                  'h-8 min-w-16 rounded-md flex items-center justify-center text-xs font-semibold',
-                                  bg,
-                                  text
+                                  'h-8 min-w-16 rounded-md flex items-center justify-center text-xs border',
+                                  colIdx >= PLACEHOLDER_COL_START
+                                    ? 'bg-gray-50 border-gray-100 text-gray-300'
+                                    : 'bg-gray-50 border-gray-100 text-gray-400'
                                 )}
+                                title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
                               >
-                                {formatCell(colIdx, value)}
+                                —
                               </div>
                             </td>
                           );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : (
-          <div className="py-10 text-center text-sm text-gray-400 italic">
-            {activeTab} breakdown — coming soon. Requires respondent metadata (not collected yet).
+                        }
+                        const { bg, text } = cellColor(colIdx, value);
+                        return (
+                          <td key={colIdx} className="p-0">
+                            <div
+                              className={cn(
+                                'h-8 min-w-16 rounded-md flex items-center justify-center text-xs font-semibold',
+                                bg,
+                                text
+                              )}
+                            >
+                              {formatCell(colIdx, value)}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
