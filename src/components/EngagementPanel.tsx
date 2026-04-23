@@ -18,7 +18,6 @@ const ENPS_RATINGS = [
 
 const HEATMAP_TABS = ['Teams', 'Locations', 'Reporting Manager', 'Gender', 'Employee type'] as const;
 
-const HEATMAP_ROWS = ['Sales', 'Marketing', 'Engineering', 'Product', 'Legal', 'TravelDesk', 'Support'];
 const HEATMAP_COLUMNS = [
   'Participation Rate',
   'e-NPS',
@@ -28,6 +27,43 @@ const HEATMAP_COLUMNS = [
   'Management',
   'Work Life Balance',
 ];
+
+// Hand-tuned sample values per screenshot reference. Swap with live backend
+// data once engagement drivers are wired.
+const HEATMAP_ROWS: { team: string; cells: Array<number | string> }[] = [
+  { team: 'Sales',       cells: [28.9, -26,  6.9, 6.4, 5.7, 6.2, 5.8] },
+  { team: 'Marketing',   cells: [23.3,  28,  6.7, 5.5, 5.4, 6.4, 4.1] },
+  { team: 'Engineering', cells: [23.6, -12,  6.4, 4.0, 4.8, 5.5, 4.3] },
+  { team: 'Product',     cells: [15.1,  13,  6.0, 5.5, 5.1, 5.6, 4.3] },
+  { team: 'Legal',       cells: [13.5, -17,  8.0, 4.1, 5.3, 6.1, 5.4] },
+  { team: 'TravelDesk',  cells: [21.2,  17,  6.0, 3.6, 4.9, 6.3, 4.8] },
+  { team: 'Support',     cells: [24.2, -42,  7.1, 5.3, 5.0, 7.3, 5.6] },
+];
+
+// Map a value within a column's typical range to a heatmap color band.
+function cellColor(columnIndex: number, value: number): { bg: string; text: string } {
+  // Column 0 = Participation Rate (%), Column 1 = e-NPS (-100..100), rest = 0..10
+  let score: number; // normalized 0..1
+  if (columnIndex === 0) {
+    score = Math.max(0, Math.min(1, value / 35));
+  } else if (columnIndex === 1) {
+    score = Math.max(0, Math.min(1, (value + 50) / 100));
+  } else {
+    score = Math.max(0, Math.min(1, value / 10));
+  }
+
+  if (score < 0.25) return { bg: 'bg-rose-300', text: 'text-rose-900' };
+  if (score < 0.45) return { bg: 'bg-orange-200', text: 'text-orange-900' };
+  if (score < 0.6)  return { bg: 'bg-amber-100', text: 'text-amber-900' };
+  if (score < 0.8)  return { bg: 'bg-lime-200', text: 'text-lime-900' };
+  return { bg: 'bg-emerald-300', text: 'text-emerald-900' };
+}
+
+function formatCell(columnIndex: number, value: number): string {
+  if (columnIndex === 0) return value.toFixed(1);      // Participation Rate %
+  if (columnIndex === 1) return `${Math.round(value)}`; // e-NPS integer (may be negative)
+  return value.toFixed(1);
+}
 
 interface EngagementPanelProps {
   participationRate?: number | null;
@@ -130,12 +166,12 @@ export default function EngagementPanel({
 
         {/* Heatmap Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
             <thead>
               <tr>
-                <th className="w-8 text-left font-normal text-gray-400 pb-3 text-xs">…</th>
+                <th className="w-20 text-left font-normal text-gray-400 pb-2 text-xs">…</th>
                 {HEATMAP_COLUMNS.map((col) => (
-                  <th key={col} className="text-left font-normal text-gray-500 pb-3 px-3 text-xs whitespace-nowrap">
+                  <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
                     <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
                   </th>
                 ))}
@@ -143,15 +179,27 @@ export default function EngagementPanel({
             </thead>
             <tbody>
               {HEATMAP_ROWS.map((row) => (
-                <tr key={row} className="border-t border-gray-100">
-                  <td className="py-3 font-medium text-gray-700 pr-2 whitespace-nowrap">{row}</td>
-                  {HEATMAP_COLUMNS.map((col) => (
-                    <td key={col} className="py-1.5 px-1.5">
-                      <div className="h-9 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-xs text-gray-300">
-                        —
-                      </div>
-                    </td>
-                  ))}
+                <tr key={row.team}>
+                  <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
+                    {row.team}
+                  </td>
+                  {row.cells.map((value, colIdx) => {
+                    const num = typeof value === 'number' ? value : 0;
+                    const { bg, text } = cellColor(colIdx, num);
+                    return (
+                      <td key={colIdx} className="p-0">
+                        <div
+                          className={cn(
+                            'h-8 min-w-[64px] rounded-md flex items-center justify-center text-xs font-semibold',
+                            bg,
+                            text
+                          )}
+                        >
+                          {formatCell(colIdx, num)}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -159,7 +207,7 @@ export default function EngagementPanel({
         </div>
 
         <p className="text-[11px] text-gray-400 italic pt-1">
-          Heatmap values will populate once survey data is wired to engagement drivers.
+          Sample values shown. Live heatmap will populate once survey data is wired to engagement drivers.
         </p>
       </div>
     </div>
