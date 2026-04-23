@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { api } from '../lib/api';
 import { Survey, SurveyResponse } from '../types';
+import EngagementPanel from './EngagementPanel';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -149,6 +150,12 @@ export default function DetailedAnalytics() {
           <p className="text-xs text-gray-400 mt-2">CSAT: {data.csat}/5</p>
         </div>
       </div>
+
+      {/* Engagement Panel (eNPS + Participation + Driver Heatmap) */}
+      <EngagementPanel
+        participationRate={data?.completionRate ? parseFloat(String(data.completionRate).replace('%', '')) : null}
+        participationChange={null}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

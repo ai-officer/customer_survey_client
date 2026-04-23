@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { api } from '../lib/api';
 import { Survey } from '../types';
 import { useAuth } from '../context/AuthContext';
+import EngagementPanel from './EngagementPanel';
 
 const RATING_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981'];
 const DEPT_COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9', '#ec4899', '#22c55e'];
@@ -115,6 +116,12 @@ export default function Dashboard() {
         <StatCard icon={TrendingUp} label="Avg. CSAT Score" value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`} color="bg-rose-600" />
         <StatCard icon={ThumbsUp} label="NPS Score" value={loading ? '—' : stats?.nps ?? 0} subtitle="Net Promoter Score" color="bg-purple-600" />
       </div>
+
+      {/* Engagement Panel (eNPS + Participation + Driver Heatmap) */}
+      <EngagementPanel
+        participationRate={stats?.completionRate ?? null}
+        participationChange={null}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
