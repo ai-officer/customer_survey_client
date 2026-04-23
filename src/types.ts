@@ -16,6 +16,10 @@ export interface Survey {
   createdAt: string;
   startDate?: string | null;
   endDate?: string | null;
+  createdBy?: string | null;
+  departmentId?: string | null;
+  departmentName?: string | null;
+  customer?: string | null;
   questions: Question[];
   createdByName?: string | null;
 }
@@ -26,6 +30,14 @@ export interface SurveyResponse {
   answers: Record<string, any>;
   submittedAt: string;
   is_complete: boolean;
+  respondentName?: string | null;
+  isAnonymous?: boolean;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  createdAt: string;
 }
 
 export type UserRole = 'admin' | 'manager';

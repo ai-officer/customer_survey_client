@@ -1,8 +1,12 @@
 import React from 'react';
-import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp, Calendar } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp, Calendar, Star, Building2, UserCog } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from 'recharts';
 import { api } from '../lib/api';
 import { Survey } from '../types';
+import { useAuth } from '../context/AuthContext';
+
+const RATING_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981'];
+const DEPT_COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9', '#ec4899', '#22c55e'];
 
 const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -23,6 +27,7 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => 
 );
 
 export default function Dashboard() {
+  const { isAdmin } = useAuth();
   const [stats, setStats] = React.useState<any>(null);
   const [surveys, setSurveys] = React.useState<Survey[]>([]);
   const [startDate, setStartDate] = React.useState('');
@@ -143,6 +148,85 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Rating Scale Distribution + Department Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Star size={18} className="text-amber-500" />
+            <h3 className="text-lg font-bold text-gray-900">Rating Scale Distribution</h3>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={(stats?.ratingDistribution || []).map((r: any) => ({ name: `${r.rating}★`, count: r.count, rating: r.rating }))}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} allowDecimals={false} />
+                <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={40}>
+                  {(stats?.ratingDistribution || []).map((_: any, i: number) => (
+                    <Cell key={`rating-cell-${i}`} fill={RATING_COLORS[i]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {(!stats?.ratingDistribution || stats.ratingDistribution.every((r: any) => r.count === 0)) && (
+            <p className="text-center text-xs text-gray-400 mt-3 italic">No rating responses yet.</p>
+          )}
+        </div>
+
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Building2 size={18} className="text-indigo-500" />
+            <h3 className="text-lg font-bold text-gray-900">Team / Department Breakdown</h3>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats?.departmentBreakdown || []} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} allowDecimals={false} />
+                <YAxis dataKey="department" type="category" axisLine={false} tickLine={false}
+                  tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }} width={120} />
+                <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="responses" radius={[0, 6, 6, 0]} barSize={22}>
+                  {(stats?.departmentBreakdown || []).map((_: any, i: number) => (
+                    <Cell key={`dept-cell-${i}`} fill={DEPT_COLORS[i % DEPT_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {(!stats?.departmentBreakdown || stats.departmentBreakdown.length === 0) && (
+            <p className="text-center text-xs text-gray-400 mt-3 italic">No department data yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Admin-only: Survey breakdown by creator */}
+      {isAdmin && (
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <UserCog size={18} className="text-purple-500" />
+            <h3 className="text-lg font-bold text-gray-900">Admin · Responses by Survey Owner</h3>
+            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-100 font-medium">Admin View</span>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats?.adminSurveyBreakdown || []}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} allowDecimals={false} />
+                <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="responses" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {(!stats?.adminSurveyBreakdown || stats.adminSurveyBreakdown.length === 0) && (
+            <p className="text-center text-xs text-gray-400 mt-3 italic">No responses tied to a survey owner yet.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

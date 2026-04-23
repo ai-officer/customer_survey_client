@@ -14,6 +14,8 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
   const { id } = useParams();
   const [survey, setSurvey] = React.useState<Survey | null>(previewSurvey || null);
   const [answers, setAnswers] = React.useState<Record<string, any>>({});
+  const [respondentName, setRespondentName] = React.useState('');
+  const [isAnonymous, setIsAnonymous] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
   const [loading, setLoading] = React.useState(!previewSurvey);
   const [submitError, setSubmitError] = React.useState('');
@@ -42,10 +44,19 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
       return;
     }
     setSubmitError('');
+    if (!isAnonymous && !respondentName.trim()) {
+      setSubmitError('Please enter your name or choose to submit anonymously.');
+      return;
+    }
     const response = await fetch('/api/responses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ surveyId: id, answers })
+      body: JSON.stringify({
+        surveyId: id,
+        answers,
+        respondent_name: isAnonymous ? null : respondentName.trim(),
+        is_anonymous: isAnonymous,
+      })
     });
     if (response.ok) {
       setSubmitted(true);
@@ -117,6 +128,40 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 space-y-4">
+            <div className="space-y-1">
+              <label className="text-base md:text-lg font-bold text-gray-900 flex items-start">
+                Your Name
+                {!isAnonymous && <span className="text-rose-500 ml-1">*</span>}
+              </label>
+              <p className="text-xs md:text-sm text-gray-500">
+                We collect your name by default. You may choose to submit anonymously.
+              </p>
+            </div>
+            <input
+              type="text"
+              value={respondentName}
+              onChange={(e) => setRespondentName(e.target.value)}
+              disabled={isAnonymous}
+              placeholder={isAnonymous ? "You are submitting anonymously" : "Enter your full name"}
+              className={cn(
+                "w-full p-3 md:p-4 border rounded-xl md:rounded-2xl outline-none transition-all text-sm md:text-base",
+                isAnonymous
+                  ? "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-50 border-gray-100 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+              )}
+            />
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <span className="text-sm text-gray-600 font-medium">Submit anonymously</span>
+            </label>
+          </div>
+
           {survey.questions.map((q, idx) => (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -143,22 +188,34 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
               )}
 
               {q.type === 'rating' && (
-                <div className="flex items-center justify-between max-w-sm gap-2">
-                  {[1, 2, 3, 4, 5].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAnswers({ ...answers, [q.id]: val })}
-                      className={cn(
-                        "flex-1 aspect-square sm:w-12 sm:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all",
-                        answers[q.id] === val 
-                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
-                          : "bg-gray-50 text-gray-400 hover:bg-gray-100"
-                      )}
-                    >
-                      <Star size={18} className="sm:w-5 sm:h-5" fill={answers[q.id] === val ? "currentColor" : "none"} />
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-5 gap-2 md:gap-3">
+                    {[1, 2, 3, 4, 5].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, [q.id]: val })}
+                        className={cn(
+                          "aspect-square rounded-xl md:rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all border",
+                          answers[q.id] === val
+                            ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200"
+                            : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-white hover:border-indigo-200 hover:text-indigo-600"
+                        )}
+                        aria-label={`Rate ${val} out of 5`}
+                      >
+                        <Star
+                          size={16}
+                          className="sm:w-[18px] sm:h-[18px]"
+                          fill={answers[q.id] === val ? "currentColor" : "none"}
+                        />
+                        <span className="text-sm sm:text-base font-bold leading-none">{val}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between px-1 text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <span>Poor</span>
+                    <span>Excellent</span>
+                  </div>
                 </div>
               )}
 

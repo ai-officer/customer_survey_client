@@ -2,38 +2,56 @@ import React from 'react';
 import { Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, CheckCircle2, Eye, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'motion/react';
-import { Question, QuestionType, Survey } from '../types';
+import { Question, QuestionType, Survey, Department } from '../types';
 import SurveyResponse from './SurveyResponse';
 import { api } from '../lib/api';
+
+const DEFAULT_RATING_QUESTION = (): Question => ({
+  id: `rating-${Date.now()}`,
+  type: 'rating',
+  text: 'Overall, how would you rate your experience?',
+  required: true,
+});
 
 export default function SurveyForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const isNew = !id || id === 'new';
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
-  const [questions, setQuestions] = React.useState<Question[]>([]);
+  const [questions, setQuestions] = React.useState<Question[]>(
+    isNew ? [DEFAULT_RATING_QUESTION()] : []
+  );
   const [status, setStatus] = React.useState<Survey['status']>('draft');
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
+  const [departmentId, setDepartmentId] = React.useState<string>('');
+  const [customer, setCustomer] = React.useState('');
+  const [departments, setDepartments] = React.useState<Department[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(!!id && id !== 'new');
+  const [loading, setLoading] = React.useState(!isNew);
 
   React.useEffect(() => {
-    if (id && id !== 'new') {
-      fetch(`/api/surveys/${id}`)
-        .then(res => res.json())
-        .then(data => {
+    api.get<Department[]>('/departments').then(setDepartments).catch(() => setDepartments([]));
+  }, []);
+
+  React.useEffect(() => {
+    if (!isNew) {
+      api.get<any>(`/surveys/${id}`)
+        .then((data) => {
           setTitle(data.title);
           setDescription(data.description);
           setQuestions(data.questions);
           setStatus(data.status);
           if (data.startDate) setStartDate(data.startDate.slice(0, 10));
           if (data.endDate) setEndDate(data.endDate.slice(0, 10));
+          if (data.departmentId) setDepartmentId(data.departmentId);
+          if (data.customer) setCustomer(data.customer);
           setLoading(false);
         })
         .catch(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, isNew]);
 
   if (loading) {
     return (
@@ -63,10 +81,12 @@ export default function SurveyForm() {
   };
 
   const saveSurvey = async () => {
-    const isEdit = id && id !== 'new';
+    const isEdit = !isNew;
     const surveyData: any = { title, description, questions, status };
     if (startDate) surveyData.start_date = new Date(startDate).toISOString();
     if (endDate) surveyData.end_date = new Date(endDate).toISOString();
+    surveyData.department_id = departmentId || null;
+    surveyData.customer = customer.trim() || null;
 
     if (isEdit) {
       await api.put(`/surveys/${id}`, surveyData);
@@ -166,13 +186,39 @@ export default function SurveyForm() {
           onChange={(e) => setDescription(e.target.value)}
           className="w-full text-sm md:text-base text-gray-600 placeholder-gray-300 border-none outline-none focus:ring-0 resize-none h-20"
         />
-        <div className="flex flex-col sm:flex-row gap-4 pt-2 border-t border-gray-50">
-          <div className="flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Department</label>
+            <select
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
+              <option value="">— Select a department —</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Don't see yours? Admin can add via <span className="font-medium">Settings → Departments</span>.
+            </p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Customer</label>
+            <input
+              type="text"
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              placeholder="e.g. Acme Corp"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">Start Date (optional)</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
-          <div className="flex-1">
+          <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">End Date (optional)</label>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />

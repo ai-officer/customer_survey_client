@@ -9,6 +9,7 @@ import DetailedAnalytics from './components/DetailedAnalytics';
 import Login from './components/Login';
 import UserManagement from './components/UserManagement';
 import AuditLogs from './components/AuditLogs';
+import DepartmentManagement from './components/DepartmentManagement';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,9 @@ function AppRoutes() {
               } />
               <Route path="/settings/users" element={
                 <AdminRoute><UserManagement /></AdminRoute>
+              } />
+              <Route path="/settings/departments" element={
+                <AdminRoute><DepartmentManagement /></AdminRoute>
               } />
               <Route path="/settings/audit" element={
                 <AdminRoute><AuditLogs /></AdminRoute>

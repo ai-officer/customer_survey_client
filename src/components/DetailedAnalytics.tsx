@@ -1,9 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar } from 'lucide-react';
+import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar, UserRound, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { motion } from 'motion/react';
+import { format } from 'date-fns';
 import { api } from '../lib/api';
+import { Survey, SurveyResponse } from '../types';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -15,6 +17,10 @@ export default function DetailedAnalytics() {
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const [exporting, setExporting] = React.useState(false);
+  const [responses, setResponses] = React.useState<SurveyResponse[]>([]);
+  const [surveyMeta, setSurveyMeta] = React.useState<Survey | null>(null);
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [responsesError, setResponsesError] = React.useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -27,7 +33,17 @@ export default function DetailedAnalytics() {
       .catch(() => setLoading(false));
   };
 
-  React.useEffect(() => { fetchData(); }, [id, startDate, endDate]);
+  const fetchResponses = () => {
+    setResponsesError('');
+    Promise.all([
+      api.get<Survey>(`/surveys/${id}`),
+      api.get<SurveyResponse[]>(`/responses?survey_id=${id}`),
+    ])
+      .then(([s, r]) => { setSurveyMeta(s); setResponses(r); })
+      .catch((err: any) => setResponsesError(err?.message || 'Unable to load responses'));
+  };
+
+  React.useEffect(() => { fetchData(); fetchResponses(); }, [id, startDate, endDate]);
 
   const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
     setExporting(true);
@@ -176,6 +192,86 @@ export default function DetailedAnalytics() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Individual Responses */}
+      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between mb-6 gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Individual Responses</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Visible to the survey owner and administrators.
+            </p>
+          </div>
+          <span className="text-sm text-gray-400">{responses.length} submission{responses.length === 1 ? '' : 's'}</span>
+        </div>
+
+        {responsesError && (
+          <div className="p-3 mb-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+            {responsesError}
+          </div>
+        )}
+
+        {responses.length === 0 && !responsesError ? (
+          <div className="text-center py-12 text-gray-400 italic">No responses yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {responses.map((r) => {
+              const isOpen = expandedId === r.id;
+              const displayName = r.isAnonymous
+                ? 'Anonymous'
+                : (r.respondentName?.trim() || 'Unnamed respondent');
+              return (
+                <div key={r.id} className="border border-gray-100 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isOpen ? null : r.id)}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-gray-100 text-gray-500' : 'bg-indigo-50 text-indigo-600'}`}>
+                        {r.isAnonymous ? <EyeOff size={16} /> : <UserRound size={16} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                        <p className="text-xs text-gray-500">
+                          {r.submittedAt ? format(new Date(r.submittedAt), 'MMM d, yyyy · h:mm a') : '—'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {!r.is_complete && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium border border-amber-100">
+                          Incomplete
+                        </span>
+                      )}
+                      {isOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                    </div>
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 pb-4 pt-1 bg-gray-50/50 border-t border-gray-100 space-y-3">
+                      {(surveyMeta?.questions || []).map((q) => {
+                        const val = r.answers?.[q.id];
+                        const display =
+                          val === undefined || val === null || val === ''
+                            ? <span className="text-gray-400 italic">No answer</span>
+                            : typeof val === 'number'
+                            ? <span className="font-semibold text-indigo-600">{val} / 5</span>
+                            : String(val);
+                        return (
+                          <div key={q.id} className="text-sm">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">{q.text || '(untitled question)'}</p>
+                            <p className="text-gray-800 break-words whitespace-pre-wrap">{display}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Open-ended responses */}

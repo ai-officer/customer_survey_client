@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -161,6 +161,7 @@ export default function Layout({ children }: LayoutProps) {
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     ...(isAdmin ? [
       { icon: Users, label: 'Users', path: '/settings/users' },
+      { icon: Building2, label: 'Departments', path: '/settings/departments' },
       { icon: Shield, label: 'Audit Logs', path: '/settings/audit' },
     ] : []),
     { icon: Settings, label: 'Settings', path: '/settings' },
