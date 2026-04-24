@@ -228,7 +228,7 @@ export default function Layout({ children }: LayoutProps) {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'relative flex items-center gap-3 px-2.5 py-2 rounded-md transition-colors text-[13.5px]',
+                        'group/nav relative flex items-center gap-3 px-2.5 py-2 rounded-md transition-colors text-[13.5px]',
                         active
                           ? 'bg-secondary/70 text-[color:var(--sidebar-fg)] font-medium'
                           : 'text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 hover:text-[color:var(--sidebar-fg)]',
@@ -243,7 +243,7 @@ export default function Layout({ children }: LayoutProps) {
                       )}
                       <item.icon
                         size={16}
-                        className="shrink-0"
+                        className="nav-icon shrink-0"
                         style={active ? { color: 'var(--sidebar-accent)' } : undefined}
                       />
                       <span>{item.label}</span>
@@ -272,16 +272,16 @@ export default function Layout({ children }: LayoutProps) {
           <div className="space-y-0.5">
             <button
               onClick={() => setShowChangePassword(true)}
-              className="flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 hover:text-[color:var(--sidebar-fg)] w-full text-[13px] px-2.5 py-1.5 transition-colors"
+              className="group/nav flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 hover:text-[color:var(--sidebar-fg)] w-full text-[13px] px-2.5 py-1.5 transition-colors"
             >
-              <KeyRound size={14} className="shrink-0" />
+              <KeyRound size={14} className="nav-icon shrink-0" />
               <span>Change password</span>
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-red-950/40 hover:text-red-300 w-full text-[13px] px-2.5 py-1.5 transition-colors"
+              className="group/nav flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-red-950/40 hover:text-red-300 w-full text-[13px] px-2.5 py-1.5 transition-colors"
             >
-              <LogOut size={14} className="shrink-0" />
+              <LogOut size={14} className="nav-icon shrink-0" />
               <span>Sign out</span>
             </button>
           </div>
@@ -324,7 +324,7 @@ export default function Layout({ children }: LayoutProps) {
                             to={item.path}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
-                              'flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] transition-colors',
+                              'group/nav flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] transition-colors',
                               active
                                 ? 'bg-secondary/70 text-[color:var(--sidebar-fg)] font-medium'
                                 : 'text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40',
@@ -332,6 +332,7 @@ export default function Layout({ children }: LayoutProps) {
                           >
                             <item.icon
                               size={18}
+                              className="nav-icon shrink-0"
                               style={active ? { color: 'var(--sidebar-accent)' } : undefined}
                             />
                             <span>{item.label}</span>
@@ -439,12 +440,13 @@ export default function Layout({ children }: LayoutProps) {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 py-1 transition-colors',
+                'group/nav flex flex-col items-center justify-center flex-1 py-1 transition-colors',
                 active ? 'text-[color:var(--sidebar-fg)]' : 'text-[color:var(--sidebar-muted-fg)]',
               )}
             >
               <item.icon
                 size={18}
+                className="nav-icon"
                 style={active ? { color: 'var(--sidebar-accent)' } : undefined}
               />
               <span className="text-[10px] mt-0.5">{item.label}</span>
