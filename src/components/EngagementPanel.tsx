@@ -90,10 +90,44 @@ export default function EngagementPanel({
 
   return (
     <div className="space-y-6">
-      {/* Top row: Rating chart + Participation rate card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Rating distribution chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      {/* Participation rate banner */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-wrap items-center gap-6">
+        <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+          <span>Participation rate</span>
+          <Info size={14} className="text-gray-400" />
+        </div>
+        <div className="text-4xl font-bold text-gray-900 leading-none">
+          {loading ? '…' : displayRate}
+        </div>
+        {delta !== null && delta !== 0 && (
+          <div
+            className={cn(
+              'flex items-center gap-1 text-sm font-medium',
+              delta < 0 ? 'text-rose-500' : 'text-emerald-600'
+            )}
+          >
+            <span>{Math.abs(delta).toFixed(1)}%</span>
+            {delta < 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
+            <span className="text-gray-500 font-normal">
+              {delta < 0 ? 'decrease' : 'increase'} from previous period
+            </span>
+          </div>
+        )}
+        {delta === null && !loading && (
+          <div className="text-xs text-gray-400">Apply a date range to compare against the previous period.</div>
+        )}
+      </div>
+
+      {/* Responses chart + Engagement Score by Drivers — side by side */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* Responses (rating distribution) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Responses</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Response counts per rating (1–5).
+            </p>
+          </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 24, right: 16, left: 0, bottom: 30 }}>
@@ -125,114 +159,85 @@ export default function EngagementPanel({
           </div>
         </div>
 
-        {/* Participation rate */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-3">
-            <span>Participation rate</span>
-            <Info size={14} className="text-gray-400" />
+        {/* Engagement Score by Drivers */}
+        <div className="xl:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Engagement Score by Drivers</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              This heatmap shows engagement drivers/areas at a glance across teams. Participation Rate and e-NPS are live; the remaining driver columns will populate once survey questions can be tagged with driver categories.
+            </p>
           </div>
-          <div className="text-5xl font-bold text-gray-900 leading-none mb-3">
-            {loading ? '…' : displayRate}
-          </div>
-          {delta !== null && delta !== 0 && (
-            <div
-              className={cn(
-                'flex items-center gap-1 text-sm font-medium',
-                delta < 0 ? 'text-rose-500' : 'text-emerald-600'
-              )}
-            >
-              <span>{Math.abs(delta).toFixed(1)}%</span>
-              {delta < 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-              <span className="text-gray-500 font-normal">
-                {delta < 0 ? 'decrease' : 'increase'} from previous period
-              </span>
+
+          {rows.length === 0 ? (
+            <div className="py-10 text-center text-sm text-gray-400 italic">
+              {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
             </div>
-          )}
-          {delta === null && !loading && (
-            <div className="text-xs text-gray-400">Apply a date range to compare against the previous period.</div>
-          )}
-        </div>
-      </div>
-
-      {/* Engagement Score by Drivers */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Engagement Score by Drivers</h3>
-          <p className="text-xs text-gray-500 mt-1">
-            This heatmap shows engagement drivers/areas at a glance across teams. Participation Rate and e-NPS are live; the remaining driver columns will populate once survey questions can be tagged with driver categories.
-          </p>
-        </div>
-
-        {/* Heatmap Table (Teams) */}
-        {rows.length === 0 ? (
-          <div className="py-10 text-center text-sm text-gray-400 italic">
-            {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
-              <thead>
-                <tr>
-                  <th className="w-32 text-left font-normal text-gray-400 pb-2 text-xs">Team</th>
-                  {HEATMAP_COLUMNS.map((col) => (
-                    <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
-                      <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const cells: Array<number | null> = [
-                    row.participationRate ?? null,
-                    row.nps ?? null,
-                    null, null, null, null, null, // driver columns: awaits driver_category tagging
-                  ];
-                  return (
-                    <tr key={row.department}>
-                      <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
-                        {row.department}
-                      </td>
-                      {cells.map((value, colIdx) => {
-                        if (value == null) {
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
+                <thead>
+                  <tr>
+                    <th className="w-28 text-left font-normal text-gray-400 pb-2 text-xs">Team</th>
+                    {HEATMAP_COLUMNS.map((col) => (
+                      <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
+                        <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const cells: Array<number | null> = [
+                      row.participationRate ?? null,
+                      row.nps ?? null,
+                      null, null, null, null, null, // driver columns: awaits driver_category tagging
+                    ];
+                    return (
+                      <tr key={row.department}>
+                        <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
+                          {row.department}
+                        </td>
+                        {cells.map((value, colIdx) => {
+                          if (value == null) {
+                            return (
+                              <td key={colIdx} className="p-0">
+                                <div
+                                  className={cn(
+                                    'h-8 min-w-14 rounded-md flex items-center justify-center text-xs border',
+                                    colIdx >= PLACEHOLDER_COL_START
+                                      ? 'bg-gray-50 border-gray-100 text-gray-300'
+                                      : 'bg-gray-50 border-gray-100 text-gray-400'
+                                  )}
+                                  title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
+                                >
+                                  —
+                                </div>
+                              </td>
+                            );
+                          }
+                          const { bg, text } = cellColor(colIdx, value);
                           return (
                             <td key={colIdx} className="p-0">
                               <div
                                 className={cn(
-                                  'h-8 min-w-16 rounded-md flex items-center justify-center text-xs border',
-                                  colIdx >= PLACEHOLDER_COL_START
-                                    ? 'bg-gray-50 border-gray-100 text-gray-300'
-                                    : 'bg-gray-50 border-gray-100 text-gray-400'
+                                  'h-8 min-w-14 rounded-md flex items-center justify-center text-xs font-semibold',
+                                  bg,
+                                  text
                                 )}
-                                title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
                               >
-                                —
+                                {formatCell(colIdx, value)}
                               </div>
                             </td>
                           );
-                        }
-                        const { bg, text } = cellColor(colIdx, value);
-                        return (
-                          <td key={colIdx} className="p-0">
-                            <div
-                              className={cn(
-                                'h-8 min-w-16 rounded-md flex items-center justify-center text-xs font-semibold',
-                                bg,
-                                text
-                              )}
-                            >
-                              {formatCell(colIdx, value)}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
