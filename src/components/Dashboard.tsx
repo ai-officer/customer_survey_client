@@ -32,7 +32,7 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
   const peakDay = data.find((d) => d.responses === peakValue);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full flex flex-col">
       <div className="px-6 py-4 border-b border-gray-100 flex items-baseline justify-between">
         <h3 className="text-lg font-bold text-gray-900">Response Trend</h3>
         <span className="text-xs text-gray-400 font-medium">Last 7 days</span>
@@ -56,7 +56,7 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
         </div>
       </div>
 
-      <div className="px-3 pt-3 pb-2 h-36 border-t border-gray-100">
+      <div className="px-3 pt-3 pb-2 flex-1 min-h-[10rem] border-t border-gray-100">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 6 }}>
             <defs>
@@ -98,27 +98,29 @@ function TopSurveys({ data }: { data: Array<{ name: string; responses: number }>
   const max = Math.max(1, ...sorted.map((d) => d.responses));
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full flex flex-col">
       <div className="px-6 py-4 border-b border-gray-100 flex items-baseline justify-between">
         <h3 className="text-lg font-bold text-gray-900">Top Surveys</h3>
         <span className="text-xs text-gray-400 font-medium">By response volume</span>
       </div>
 
       {sorted.length === 0 ? (
-        <div className="py-12 text-center text-sm text-gray-400">No surveys with responses in this range.</div>
+        <div className="flex-1 flex items-center justify-center py-12 text-center text-sm text-gray-400">
+          No surveys with responses in this range.
+        </div>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="flex-1 flex flex-col divide-y divide-gray-100">
           {sorted.map((row, i) => (
-            <div key={`${row.name}-${i}`} className="px-6 py-3 flex items-center gap-4">
+            <div key={`${row.name}-${i}`} className="flex-1 min-h-13 px-6 py-3 flex items-center gap-3">
               <span className="text-xs text-gray-400 font-medium tabular-nums w-6">{String(i + 1).padStart(2, '0')}</span>
               <p className="flex-1 text-sm font-medium text-gray-900 truncate">{row.name || 'Untitled'}</p>
-              <div className="w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="hidden sm:block w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden shrink-0">
                 <div
                   className="h-full bg-indigo-500 rounded-full"
                   style={{ width: `${(row.responses / max) * 100}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-gray-900 tabular-nums w-10 text-right">{row.responses}</span>
+              <span className="text-sm font-semibold text-gray-900 tabular-nums w-8 text-right">{row.responses}</span>
             </div>
           ))}
         </div>
@@ -217,10 +219,10 @@ export default function Dashboard() {
 
       {/* Response Trend + Top Surveys */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-2">
+        <div className="xl:col-span-3 flex">
           <ResponseTrend data={stats?.responseTrend ?? []} />
         </div>
-        <div className="xl:col-span-3">
+        <div className="xl:col-span-2 flex">
           <TopSurveys data={stats?.surveyPerformance ?? []} />
         </div>
       </div>
