@@ -7,11 +7,12 @@ import { api } from '../lib/api';
 import { Survey } from '../types';
 import EngagementPanel from './EngagementPanel';
 
-const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => (
+const StatCard = ({ icon: Icon, label, value, trend, subtitle }: any) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-    <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
-        <Icon className={color.replace('bg-', 'text-')} size={24} />
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2 text-gray-500">
+        {Icon && <Icon size={16} />}
+        <p className="text-sm font-medium">{label}</p>
       </div>
       {trend !== undefined && (
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-50 text-green-600' : trend < 0 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-500'}`}>
@@ -19,8 +20,7 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtitle }: any) => 
         </span>
       )}
     </div>
-    <p className="text-sm text-gray-500 font-medium">{label}</p>
-    <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+    <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
     {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
   </div>
 );
@@ -207,11 +207,11 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <StatCard icon={Users} label="Total Responses" value={loading ? '—' : stats?.totalResponses ?? 0} color="bg-indigo-600" />
-        <StatCard icon={ClipboardCheck} label="Active Surveys" value={loading ? '—' : stats?.activeSurveys ?? 0} subtitle={`of ${stats?.surveyCount ?? 0} total`} color="bg-emerald-600" />
-        <StatCard icon={MessageSquare} label="Completion Rate" value={loading ? '—' : `${stats?.completionRate ?? 0}%`} color="bg-amber-600" />
-        <StatCard icon={TrendingUp} label="Avg. CSAT Score" value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`} color="bg-rose-600" />
-        <StatCard icon={ThumbsUp} label="NPS Score" value={loading ? '—' : stats?.nps ?? 0} subtitle="Net Promoter Score" color="bg-purple-600" />
+        <StatCard icon={Users} label="Total Responses" value={loading ? '—' : stats?.totalResponses ?? 0} />
+        <StatCard icon={ClipboardCheck} label="Active Surveys" value={loading ? '—' : stats?.activeSurveys ?? 0} subtitle={`of ${stats?.surveyCount ?? 0} total`} />
+        <StatCard icon={MessageSquare} label="Completion Rate" value={loading ? '—' : `${stats?.completionRate ?? 0}%`} />
+        <StatCard icon={TrendingUp} label="Avg. CSAT Score" value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`} />
+        <StatCard icon={ThumbsUp} label="NPS Score" value={loading ? '—' : stats?.nps ?? 0} subtitle="Net Promoter Score" />
       </div>
 
       {/* Engagement Panel (Responses + Driver Heatmap) */}
