@@ -1,10 +1,21 @@
 import React from 'react';
-import { Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, CheckCircle2, Eye, X } from '../lib/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'motion/react';
+import {
+  Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, Eye, X,
+} from '../lib/icons';
 import { Question, QuestionType, Survey, Department } from '../types';
 import SurveyResponse from './SurveyResponse';
 import { api } from '../lib/api';
+import { cn } from '../lib/utils';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
 
 const DEFAULT_RATING_QUESTION = (): Question => ({
   id: `rating-${Date.now()}`,
@@ -13,10 +24,25 @@ const DEFAULT_RATING_QUESTION = (): Question => ({
   required: true,
 });
 
+const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
+  text: 'Short answer',
+  rating: 'Rating scale',
+  'multiple-choice': 'Multiple choice',
+  boolean: 'Yes / No',
+};
+
+const ADD_TYPES: { type: QuestionType; label: string; hint: string }[] = [
+  { type: 'text',            label: 'Short answer',   hint: 'a text field' },
+  { type: 'rating',          label: 'Rating scale',   hint: '1 to 5 stars' },
+  { type: 'multiple-choice', label: 'Multiple choice', hint: 'pick one from a list' },
+  { type: 'boolean',         label: 'Yes / No',       hint: 'a binary toggle' },
+];
+
 export default function SurveyForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isNew = !id || id === 'new';
+
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [questions, setQuestions] = React.useState<Question[]>(
@@ -30,6 +56,7 @@ export default function SurveyForm() {
   const [departments, setDepartments] = React.useState<Department[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(!isNew);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     api.get<Department[]>('/departments').then(setDepartments).catch(() => setDepartments([]));
@@ -56,7 +83,7 @@ export default function SurveyForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-gray-400 font-medium">Loading survey details...</div>
+        <div className="eyebrow animate-pulse">loading survey…</div>
       </div>
     );
   }
@@ -67,261 +94,377 @@ export default function SurveyForm() {
       type,
       text: '',
       required: false,
-      options: type === 'multiple-choice' ? ['Option 1'] : undefined
+      options: type === 'multiple-choice' ? ['Option 1'] : undefined,
     };
     setQuestions([...questions, newQuestion]);
   };
 
-  const removeQuestion = (id: string) => {
-    setQuestions(questions.filter(q => q.id !== id));
-  };
+  const removeQuestion = (qid: string) => setQuestions(questions.filter(q => q.id !== qid));
 
-  const updateQuestion = (id: string, updates: Partial<Question>) => {
-    setQuestions(questions.map(q => q.id === id ? { ...q, ...updates } : q));
+  const updateQuestion = (qid: string, updates: Partial<Question>) => {
+    setQuestions(questions.map(q => q.id === qid ? { ...q, ...updates } : q));
   };
 
   const saveSurvey = async () => {
-    const isEdit = !isNew;
-    const surveyData: any = { title, description, questions, status };
-    if (startDate) surveyData.start_date = new Date(startDate).toISOString();
-    if (endDate) surveyData.end_date = new Date(endDate).toISOString();
-    surveyData.department_id = departmentId || null;
-    surveyData.customer = customer.trim() || null;
+    setSaving(true);
+    try {
+      const isEdit = !isNew;
+      const surveyData: any = { title, description, questions, status };
+      if (startDate) surveyData.start_date = new Date(startDate).toISOString();
+      if (endDate) surveyData.end_date = new Date(endDate).toISOString();
+      surveyData.department_id = departmentId || null;
+      surveyData.customer = customer.trim() || null;
 
-    if (isEdit) {
-      await api.put(`/surveys/${id}`, surveyData);
-    } else {
-      await api.post('/surveys', surveyData);
+      if (isEdit) await api.put(`/surveys/${id}`, surveyData);
+      else await api.post('/surveys', surveyData);
+      navigate('/surveys');
+    } finally {
+      setSaving(false);
     }
-    navigate('/surveys');
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 pb-32">
-      <div className="sticky top-0 z-30 bg-gray-50/80 backdrop-blur-md py-4 flex items-center justify-between gap-4">
-        <button onClick={() => navigate(-1)} className="flex items-center text-gray-500 hover:text-gray-900 transition-colors">
-          <ArrowLeft size={20} className="mr-2" /> <span className="hidden sm:inline">Back</span>
+    <div className="max-w-4xl mx-auto space-y-6 pb-24">
+      {/* Sticky action bar */}
+      <div className="sticky top-0 z-30 -mx-4 md:-mx-8 px-4 md:px-8 py-3 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft size={15} /> <span className="hidden sm:inline">Back to surveys</span>
         </button>
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <button
-            onClick={() => setIsPreviewOpen(true)}
-            className="flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium text-xs sm:text-sm"
-          >
-            <Eye size={18} className="mr-2" /> Preview
-          </button>
-          <select 
-            value={status} 
-            onChange={(e) => setStatus(e.target.value as any)}
-            className="bg-white border border-gray-200 rounded-xl px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
-          <button 
-            onClick={saveSurvey}
-            className="flex items-center px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 font-medium text-xs sm:text-sm"
-          >
-            <Save size={18} className="mr-2" /> Save <span className="hidden sm:inline">Survey</span>
-          </button>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setIsPreviewOpen(true)}>
+            <Eye size={14} /> <span className="hidden sm:inline">Preview</span>
+          </Button>
+
+          <Select value={status} onValueChange={(v) => setStatus(v as Survey['status'])}>
+            <SelectTrigger className="w-30">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={saveSurvey} disabled={saving || !title.trim()}>
+            <Save size={14} />
+            {saving ? 'Saving…' : 'Save'}
+            <span className="hidden sm:inline">&nbsp;survey</span>
+          </Button>
         </div>
       </div>
 
+      {/* Page eyebrow */}
+      <div>
+        <div className="eyebrow">{isNew ? 'new survey' : 'edit survey'}</div>
+        <p className="text-[13px] text-muted-foreground mt-2">
+          {isNew
+            ? 'Draft a survey, add questions, and publish when it\'s ready.'
+            : 'Make changes to this survey. Existing responses are preserved.'}
+        </p>
+      </div>
+
+      {/* Title + description card — big editable display input */}
+      <Card className="p-7 space-y-4">
+        <input
+          type="text"
+          placeholder="Untitled survey"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="display w-full text-[32px] leading-tight text-foreground placeholder:text-muted-foreground/40 bg-transparent border-none outline-none focus:ring-0 p-0"
+        />
+        <textarea
+          placeholder="Add a short description to explain what this survey is for…"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          className="w-full text-[14px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 bg-transparent border-none outline-none focus:ring-0 resize-none p-0"
+        />
+
+        {/* Details grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-border">
+          <div className="space-y-1.5">
+            <Label>Department</Label>
+            <Select value={departmentId || 'none'} onValueChange={(v) => setDepartmentId(v === 'none' ? '' : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="— Select a department —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Unassigned —</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11.5px] text-muted-foreground">
+              Don't see yours? Admin can add via <span className="font-medium text-foreground">Settings → Departments</span>.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="customer">Customer</Label>
+            <Input
+              id="customer"
+              type="text"
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              placeholder="e.g. Acme Corp"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="start">Start date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input id="start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="end">End date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          </div>
+        </div>
+      </Card>
+
+      {/* Questions section */}
+      <section className="space-y-4">
+        <div className="flex items-baseline gap-3">
+          <h2 className="heading text-[22px] font-semibold text-foreground">Questions</h2>
+          <span className="num text-[13px] text-muted-foreground">
+            {questions.length} {questions.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+
+        {questions.length === 0 ? (
+          <Card className="py-10 text-center space-y-1.5">
+            <p className="text-[13px] text-muted-foreground">No questions yet.</p>
+            <p className="text-[12px] text-muted-foreground/80">Add one from the options below to get started.</p>
+          </Card>
+        ) : (
+          <Reorder.Group axis="y" values={questions} onReorder={setQuestions} className="space-y-3">
+            {questions.map((q, idx) => (
+              <Reorder.Item key={q.id} value={q}>
+                <QuestionBlock
+                  index={idx}
+                  q={q}
+                  onChange={(patch) => updateQuestion(q.id, patch)}
+                  onRemove={() => removeQuestion(q.id)}
+                />
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+        )}
+
+        {/* Add question row */}
+        <Card className="p-4">
+          <div className="eyebrow mb-3">add question</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {ADD_TYPES.map(({ type, label, hint }) => (
+              <button
+                key={type}
+                onClick={() => addQuestion(type)}
+                className="flex flex-col items-start gap-1 rounded-md border border-dashed border-border px-3 py-3 text-left hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Plus size={14} className="text-muted-foreground group-hover:text-primary" />
+                  <span className="text-[13px] font-medium text-foreground">{label}</span>
+                </div>
+                <span className="eyebrow">{hint}</span>
+              </button>
+            ))}
+          </div>
+        </Card>
+      </section>
+
+      {/* Live Preview */}
       <AnimatePresence>
         {isPreviewOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl relative my-8"
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+              className="bg-card border border-border rounded-xl w-full max-w-4xl shadow-pop relative my-8 overflow-hidden"
             >
-              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md p-4 border-b border-gray-100 flex items-center justify-between rounded-t-3xl">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                    <Eye size={20} />
+              <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md px-5 py-3 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-md bg-secondary text-foreground flex items-center justify-center">
+                    <Eye size={16} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Live Preview</h3>
-                    <p className="text-xs text-gray-500">Previewing your changes</p>
+                    <div className="eyebrow">live preview</div>
+                    <h3 className="heading text-[14px] font-semibold leading-none mt-0.5">
+                      Previewing unsaved changes
+                    </h3>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsPreviewOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+                  aria-label="Close"
                 >
-                  <X size={24} />
+                  <X size={18} />
                 </button>
               </div>
-              
-              <div className="p-0 max-h-[80vh] overflow-y-auto bg-gray-50">
-                <SurveyResponse 
+              <div className="max-h-[80vh] overflow-y-auto bg-background">
+                <SurveyResponse
                   previewSurvey={{
                     id: 'preview',
-                    title: title || 'Untitled Survey',
+                    title: title || 'Untitled survey',
                     description: description || 'No description provided.',
                     questions,
                     status,
-                    createdAt: new Date().toISOString()
-                  }} 
-                  isPreview={true} 
+                    createdAt: new Date().toISOString(),
+                  }}
+                  isPreview={true}
                 />
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
 
-      <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 md:space-y-6">
-        <input
-          type="text"
-          placeholder="Survey Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-2xl md:text-3xl font-bold text-gray-900 placeholder-gray-300 border-none outline-none focus:ring-0"
-        />
-        <textarea
-          placeholder="Add a description for your survey..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full text-sm md:text-base text-gray-600 placeholder-gray-300 border-none outline-none focus:ring-0 resize-none h-20"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Department</label>
-            <select
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">— Select a department —</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            <p className="text-[11px] text-gray-400 mt-1">
-              Don't see yours? Admin can add via <span className="font-medium">Settings → Departments</span>.
-            </p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Customer</label>
-            <input
-              type="text"
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              placeholder="e.g. Acme Corp"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Start Date (optional)</label>
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">End Date (optional)</label>
-            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-        </div>
+// ── Question Block ─────────────────────────────────────────────────────────────
+
+function QuestionBlock({
+  index,
+  q,
+  onChange,
+  onRemove,
+}: {
+  index: number;
+  q: Question;
+  onChange: (patch: Partial<Question>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="group relative bg-card border border-border rounded-xl shadow-card">
+      {/* Drag handle */}
+      <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hidden md:block">
+        <GripVertical size={16} className="text-muted-foreground/60" />
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center">
-          Questions <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">{questions.length}</span>
-        </h3>
-        
-        <Reorder.Group axis="y" values={questions} onReorder={setQuestions} className="space-y-4">
-          {questions.map((q) => (
-            <Reorder.Item key={q.id} value={q}>
-              <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm group relative">
-                <div className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hidden md:block">
-                  <GripVertical size={20} className="text-gray-300" />
-                </div>
-                
-                <div className="md:ml-4 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <input
-                      type="text"
-                      placeholder="Enter your question here..."
-                      value={q.text}
-                      onChange={(e) => updateQuestion(q.id, { text: e.target.value })}
-                      className="flex-1 text-base md:text-lg font-medium text-gray-900 placeholder-gray-300 border-none outline-none focus:ring-0 p-0"
-                    />
-                    <div className="flex items-center justify-between sm:justify-end space-x-2">
-                      <span className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
-                        {q.type}
-                      </span>
-                      <button onClick={() => removeQuestion(q.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {q.type === 'multiple-choice' && (
-                    <div className="space-y-2 ml-4">
-                      {q.options?.map((opt, idx) => (
-                        <div key={idx} className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full border-2 border-gray-200" />
-                          <input
-                            type="text"
-                            value={opt}
-                            onChange={(e) => {
-                              const newOpts = [...(q.options || [])];
-                              newOpts[idx] = e.target.value;
-                              updateQuestion(q.id, { options: newOpts });
-                            }}
-                            className="flex-1 text-sm text-gray-600 border-none outline-none focus:ring-0 p-0"
-                          />
-                        </div>
-                      ))}
-                      <button 
-                        onClick={() => updateQuestion(q.id, { options: [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`] })}
-                        className="text-xs font-medium text-blue-600 hover:underline ml-6"
-                      >
-                        + Add Option
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={q.required}
-                          onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-500 font-medium">Required</span>
-                      </label>
-                    </div>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
-                      <Settings2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
-          {[
-            { type: 'text', label: 'Short Answer' },
-            { type: 'rating', label: 'Rating Scale' },
-            { type: 'multiple-choice', label: 'Multiple Choice' },
-            { type: 'boolean', label: 'Yes / No' }
-          ].map((item) => (
-            <button
-              key={item.type}
-              onClick={() => addQuestion(item.type as QuestionType)}
-              className="flex flex-col items-center justify-center p-4 bg-white border border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/30 transition-all group"
+      <div className="p-5 md:pl-7 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <span className="num text-[11px] text-muted-foreground mt-1.5 shrink-0">
+              Q{String(index + 1).padStart(2, '0')}
+            </span>
+            <input
+              type="text"
+              placeholder="Enter your question…"
+              value={q.text}
+              onChange={(e) => onChange({ text: e.target.value })}
+              className="flex-1 text-[15.5px] font-medium text-foreground placeholder:text-muted-foreground/50 bg-transparent border-none outline-none focus:ring-0 p-0"
+            />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="normal-case tracking-normal">
+              {QUESTION_TYPE_LABEL[q.type]}
+            </Badge>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={onRemove}
+              aria-label="Remove question"
+              className="hover:text-destructive hover:bg-red-50"
             >
-              <Plus size={20} className="text-gray-400 group-hover:text-blue-500 mb-1" />
-              <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600">{item.label}</span>
+              <Trash2 size={14} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Type-specific body */}
+        {q.type === 'multiple-choice' && (
+          <div className="space-y-1.5 pl-10">
+            {q.options?.map((opt, idx) => (
+              <div key={idx} className="flex items-center gap-2 group/opt">
+                <span className="h-3 w-3 rounded-full border border-border shrink-0" />
+                <input
+                  type="text"
+                  value={opt}
+                  onChange={(e) => {
+                    const newOpts = [...(q.options || [])];
+                    newOpts[idx] = e.target.value;
+                    onChange({ options: newOpts });
+                  }}
+                  className="flex-1 text-[13.5px] text-foreground bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-muted-foreground/50"
+                  placeholder={`Option ${idx + 1}`}
+                />
+                {(q.options?.length ?? 0) > 1 && (
+                  <button
+                    onClick={() => {
+                      const newOpts = [...(q.options || [])];
+                      newOpts.splice(idx, 1);
+                      onChange({ options: newOpts });
+                    }}
+                    className="opacity-0 group-hover/opt:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-destructive"
+                    aria-label={`Remove option ${idx + 1}`}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => onChange({ options: [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`] })}
+              className="text-[12px] font-medium text-primary hover:underline underline-offset-4 mt-1"
+            >
+              + Add option
             </button>
-          ))}
+          </div>
+        )}
+
+        {q.type === 'rating' && (
+          <div className="flex items-center gap-1.5 pl-10">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <div
+                key={n}
+                className="h-8 w-8 rounded-md border border-border bg-secondary/40 flex items-center justify-center num text-[12px] text-muted-foreground"
+              >
+                {n}
+              </div>
+            ))}
+            <span className="eyebrow ml-2">1 (low) – 5 (high)</span>
+          </div>
+        )}
+
+        {q.type === 'boolean' && (
+          <div className="flex items-center gap-2 pl-10">
+            <span className="px-3 py-1 rounded-md bg-secondary/50 text-[12.5px] text-muted-foreground">Yes</span>
+            <span className="px-3 py-1 rounded-md bg-secondary/50 text-[12.5px] text-muted-foreground">No</span>
+          </div>
+        )}
+
+        {q.type === 'text' && (
+          <div className="pl-10">
+            <div className="h-16 rounded-md border border-dashed border-border bg-secondary/30 flex items-center px-3 text-[12.5px] text-muted-foreground/70 italic">
+              Respondent will see a text field here.
+            </div>
+          </div>
+        )}
+
+        {/* Footer: required + settings */}
+        <div className="flex items-center justify-between pt-3 border-t border-border">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={q.required}
+              onChange={(e) => onChange({ required: e.target.checked })}
+              className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-ring focus:ring-offset-background focus:ring-2 focus:ring-offset-2"
+            />
+            <span className="text-[12.5px] text-muted-foreground">Required</span>
+          </label>
+          <Button size="icon" variant="ghost" className="opacity-60 hover:opacity-100" aria-label="Question settings">
+            <Settings2 size={14} />
+          </Button>
         </div>
       </div>
     </div>
