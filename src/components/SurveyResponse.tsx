@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { CheckCircle2, Send, Star, Eye, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Send, Star, Eye, AlertCircle } from '../lib/icons';
 import { Survey } from '../types';
 import { cn } from '../lib/utils';
 

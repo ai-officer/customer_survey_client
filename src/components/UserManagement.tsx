@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Edit2, UserX, X, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, UserX, X, KeyRound, Eye, EyeOff } from '../lib/icons';
 import { User, UserRole } from '../types';
 import { api } from '../lib/api';
 import { cn } from '../lib/utils';

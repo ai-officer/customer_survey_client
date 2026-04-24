@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp, Calendar } from 'lucide-react';
+import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp, Calendar } from '../lib/icons';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';

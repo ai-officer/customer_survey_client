@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
+import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from '../lib/icons';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Survey } from '../types';

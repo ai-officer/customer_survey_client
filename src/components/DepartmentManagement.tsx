@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Edit2, Check, X, Building2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Building2 } from '../lib/icons';
 import { motion } from 'motion/react';
 import { Department } from '../types';
 import { api } from '../lib/api';

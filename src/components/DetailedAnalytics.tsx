@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar, UserRound, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar, UserRound, EyeOff, ChevronDown, ChevronUp } from '../lib/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';

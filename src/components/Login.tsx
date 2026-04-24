@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, EyeOff } from 'lucide-react';
+import { ClipboardCheck, Eye, EyeOff } from '../lib/icons';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {

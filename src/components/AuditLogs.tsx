@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Search } from 'lucide-react';
+import { Shield, Search } from '../lib/icons';
 import { format } from 'date-fns';
 import { AuditLog } from '../types';
 import { api } from '../lib/api';

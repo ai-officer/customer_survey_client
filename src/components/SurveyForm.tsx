@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, CheckCircle2, Eye, X } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, CheckCircle2, Eye, X } from '../lib/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'motion/react';
 import { Question, QuestionType, Survey, Department } from '../types';
