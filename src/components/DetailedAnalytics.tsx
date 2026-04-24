@@ -162,11 +162,9 @@ export default function DetailedAnalytics() {
         </div>
       </div>
 
-      {/* Engagement Panel (Rating distribution + Participation + Driver Heatmap) */}
+      {/* Engagement Panel (Response distribution + Department heatmap) */}
       <EngagementPanel
         ratingDistribution={dashStats?.ratingDistribution ?? null}
-        completionRate={dashStats?.completionRate ?? null}
-        previousCompletionRate={dashStats?.previousCompletionRate ?? null}
         departmentEngagement={dashStats?.departmentEngagement ?? null}
         loading={loading}
       />
