@@ -9,7 +9,7 @@ import {
   Download, CopyPlus, Mail, Bell, ChevronDown, ChevronUp, Archive,
 } from '../lib/icons';
 import { SearchBar } from './ui/SearchBar';
-import { Survey } from '../types';
+import { Survey, Department } from '../types';
 import { cn } from '../lib/utils';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +29,14 @@ import {
 type Tab = 'active' | 'draft' | 'archived';
 type SortKey = 'title' | 'createdAt' | 'responses';
 type SortDir = 'asc' | 'desc';
+type CreatedFilter = 'any' | '7d' | '30d' | '90d';
+
+const CREATED_OPTIONS: { value: CreatedFilter; label: string; days?: number }[] = [
+  { value: 'any', label: 'Any time' },
+  { value: '7d',  label: 'Last 7 days',  days: 7 },
+  { value: '30d', label: 'Last 30 days', days: 30 },
+  { value: '90d', label: 'Last 90 days', days: 90 },
+];
 
 const TABS: { key: Tab; label: string; status: Survey['status'] }[] = [
   { key: 'active',   label: 'Active',   status: 'published' },
@@ -320,6 +328,8 @@ export default function SurveyList() {
   const [sortKey, setSortKey] = React.useState<SortKey>('createdAt');
   const [sortDir, setSortDir] = React.useState<SortDir>('desc');
   const [deptFilter, setDeptFilter] = React.useState<string>('all');
+  const [createdFilter, setCreatedFilter] = React.useState<CreatedFilter>('any');
+  const [allDepartments, setAllDepartments] = React.useState<Department[]>([]);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [qrSurvey, setQrSurvey] = React.useState<Survey | null>(null);
   const [previewSurvey, setPreviewSurvey] = React.useState<Survey | null>(null);
@@ -331,16 +341,10 @@ export default function SurveyList() {
     api.get<Survey[]>('/surveys')
       .then(data => { setSurveys(data); setLoading(false); })
       .catch(() => setLoading(false));
+    api.get<Department[]>('/departments')
+      .then(setAllDepartments)
+      .catch(() => setAllDepartments([]));
   }, []);
-
-  // Distinct departments for filter
-  const departments = React.useMemo(() => {
-    const set = new Map<string, string>();
-    for (const s of surveys) {
-      if (s.departmentId && s.departmentName) set.set(s.departmentId, s.departmentName);
-    }
-    return Array.from(set.entries()).sort((a, b) => a[1].localeCompare(b[1]));
-  }, [surveys]);
 
   const tabCounts = React.useMemo(() => ({
     active:   surveys.filter(s => s.status === 'published').length,
@@ -352,9 +356,19 @@ export default function SurveyList() {
 
   const filteredSurveys = React.useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+    const createdDays = CREATED_OPTIONS.find(o => o.value === createdFilter)?.days;
+    const cutoff = createdDays
+      ? Date.now() - createdDays * 24 * 60 * 60 * 1000
+      : null;
+
     const filtered = surveys
       .filter(s => s.status === tabStatus)
-      .filter(s => deptFilter === 'all' || s.departmentId === deptFilter)
+      .filter(s => {
+        if (deptFilter === 'all') return true;
+        if (deptFilter === 'unassigned') return !s.departmentId;
+        return s.departmentId === deptFilter;
+      })
+      .filter(s => cutoff === null || new Date(s.createdAt).getTime() >= cutoff)
       .filter(s => !q ||
         s.title.toLowerCase().includes(q) ||
         s.description.toLowerCase().includes(q) ||
@@ -369,15 +383,19 @@ export default function SurveyList() {
       return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir;
     });
     return sorted;
-  }, [surveys, tabStatus, deptFilter, searchQuery, sortKey, sortDir]);
+  }, [surveys, tabStatus, deptFilter, createdFilter, searchQuery, sortKey, sortDir]);
 
   const totalResponses = React.useMemo(
     () => surveys.reduce((sum, s) => sum + (s.responseCount ?? 0), 0),
     [surveys],
   );
 
-  const hasFilter = searchQuery || deptFilter !== 'all';
-  const clearFilters = () => { setSearchQuery(''); setDeptFilter('all'); };
+  const hasFilter = !!searchQuery || deptFilter !== 'all' || createdFilter !== 'any';
+  const clearFilters = () => {
+    setSearchQuery('');
+    setDeptFilter('all');
+    setCreatedFilter('any');
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
@@ -538,29 +556,53 @@ export default function SurveyList() {
 
         {/* Filter row */}
         <div className="p-3 flex flex-wrap items-center gap-2">
-          <span className="eyebrow pl-1 pr-2 shrink-0">filters</span>
+          <span className="eyebrow pl-1 pr-2 shrink-0 self-center">filters</span>
+
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Search title, creator, department, customer…"
+            placeholder="Search surveys…"
             shortcut="⌘K"
-            className="flex-1 min-w-[240px]"
+            className="w-72"
           />
-          {departments.length > 0 && (
-            <Select value={deptFilter} onValueChange={setDeptFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All departments</SelectItem>
-                {departments.map(([id, name]) => (
-                  <SelectItem key={id} value={id}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <Select value={deptFilter} onValueChange={setDeptFilter}>
+            <SelectTrigger className="w-44" aria-label="Filter by department">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All departments</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+              {allDepartments.length > 0 && (
+                <>
+                  <div className="mx-2 my-1 h-px bg-border" />
+                  {allDepartments
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(d => (
+                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    ))}
+                </>
+              )}
+            </SelectContent>
+          </Select>
+
+          <Select value={createdFilter} onValueChange={(v) => setCreatedFilter(v as CreatedFilter)}>
+            <SelectTrigger className="w-40" aria-label="Filter by created date">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CREATED_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {hasFilter && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Reset</Button>
           )}
-          {hasFilter && <Button variant="ghost" size="sm" onClick={clearFilters}>Reset</Button>}
-          <span className="ml-auto eyebrow">
+
+          <span className="ml-auto eyebrow self-center">
             <span className="num text-foreground mr-1">{filteredSurveys.length}</span>
             {filteredSurveys.length === 1 ? 'result' : 'results'}
           </span>
