@@ -11,6 +11,7 @@ import { api } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BrandLockup, BrandMark } from '@/components/ui/brand-mark';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -58,14 +59,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('New password must be at least 6 characters');
-      return;
-    }
+    if (newPassword !== confirmPassword) return setError('New passwords do not match');
+    if (newPassword.length < 6) return setError('New password must be at least 6 characters');
     setLoading(true);
     try {
       await api.post('/auth/change-password', {
@@ -81,20 +76,18 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/70 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.15 }}
-        className="bg-card border border-border rounded-lg p-6 max-w-sm w-full shadow-xl space-y-5"
+        className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-pop space-y-5"
       >
         <div className="flex items-start justify-between">
           <div>
-            <div className="eyebrow">account / security</div>
-            <h3 className="heading text-[18px] font-semibold text-foreground mt-1 leading-none">
-              Change password
-            </h3>
+            <div className="eyebrow">account · security</div>
+            <h3 className="heading text-[18px] font-semibold mt-1 leading-none">Change password</h3>
           </div>
           <button
             onClick={onClose}
@@ -110,7 +103,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
             <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
               <KeyRound size={18} />
             </div>
-            <p className="text-[14px] font-medium text-foreground">Password changed successfully.</p>
+            <p className="text-[14px] font-medium">Password updated.</p>
             <Button onClick={onClose} className="w-full">Done</Button>
           </div>
         ) : (
@@ -127,21 +120,14 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="space-y-1.5">
               <Label>New password</Label>
-              <PasswordInput
-                required
-                value={newPassword}
-                onChange={setNewPassword}
-                placeholder="At least 6 characters"
-              />
+              <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
             </div>
             <div className="space-y-1.5">
               <Label>Confirm new password</Label>
               <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
             </div>
             <div className="flex gap-2 pt-1">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-                Cancel
-              </Button>
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
               <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? 'Saving…' : 'Save'}
               </Button>
@@ -153,25 +139,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function BrandMark({ compact = false }: { compact?: boolean }) {
-  return (
-    <Link to="/" className="flex items-center gap-2.5 group">
-      <span className="relative inline-flex items-center justify-center h-7 w-7 bg-foreground rounded-md">
-        <span className="font-mono text-[11px] font-semibold text-primary leading-none tracking-tight">CS</span>
-        <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 bg-primary rounded-full" aria-hidden />
-      </span>
-      {!compact && (
-        <div className="leading-tight">
-          <div className="heading text-[14px] font-semibold text-foreground">Customer Survey</div>
-          <div className="eyebrow leading-none mt-0.5">admin / console</div>
-        </div>
-      )}
-    </Link>
-  );
-}
-
 export default function Layout({ children }: LayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [showChangePassword, setShowChangePassword] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
@@ -192,7 +160,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navSections = [
     {
-      label: 'main',
+      label: 'workspace',
       items: [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
@@ -200,7 +168,7 @@ export default function Layout({ children }: LayoutProps) {
       ],
     },
     ...(isAdmin ? [{
-      label: 'admin',
+      label: 'administration',
       items: [
         { icon: Users, label: 'Users', path: '/settings/users' },
         { icon: Building2, label: 'Departments', path: '/settings/departments' },
@@ -229,56 +197,29 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       {/* Mobile Header */}
-      <header className="md:hidden h-14 bg-card border-b border-border flex items-center justify-between px-4 sticky top-0 z-40">
-        <BrandMark />
+      <header className="md:hidden sidebar-dark h-14 flex items-center justify-between px-4 sticky top-0 z-40 border-b border-border">
+        <BrandLockup inverted compact size={26} />
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 hover:bg-secondary rounded-md transition-colors"
+          className="p-2 hover:bg-secondary rounded-md transition-colors text-[color:var(--sidebar-fg)]"
         >
           {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </header>
 
-      {/* Sidebar (Desktop) */}
-      <aside className={cn(
-        'hidden md:flex bg-card border-r border-border transition-all duration-200 flex-col sticky top-0 h-screen',
-        isSidebarOpen ? 'w-60' : 'w-16',
-      )}>
-        <div className={cn(
-          'flex items-center border-b border-border h-14',
-          isSidebarOpen ? 'px-4 justify-between' : 'px-2 justify-center',
-        )}>
-          {isSidebarOpen ? <BrandMark /> : <BrandMark compact />}
-          {isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
-              aria-label="Collapse sidebar"
-            >
-              <X size={16} />
-            </button>
-          )}
+      {/* Sidebar (Desktop, always expanded for density) */}
+      <aside className="hidden md:flex sidebar-dark w-64 flex-col sticky top-0 h-screen border-r border-border">
+        <div className="h-16 px-5 flex items-center border-b border-border">
+          <Link to="/"><BrandLockup inverted size={32} /></Link>
         </div>
 
-        {!isSidebarOpen && (
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="mx-auto mt-2 p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
-            aria-label="Expand sidebar"
-          >
-            <Menu size={16} />
-          </button>
-        )}
-
-        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {navSections.map((section, sectionIdx) => (
             <div
               key={section.label}
-              className={cn(sectionIdx > 0 && 'mt-4 pt-3 border-t border-border')}
+              className={cn(sectionIdx > 0 && 'mt-5 pt-4 border-t border-border')}
             >
-              {isSidebarOpen && (
-                <div className="eyebrow px-2 py-1.5">{section.label}</div>
-              )}
+              <div className="eyebrow px-2 pb-2">{section.label}</div>
               <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const active = isActive(item.path);
@@ -287,24 +228,25 @@ export default function Layout({ children }: LayoutProps) {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'relative flex items-center rounded-md transition-colors group text-[13.5px]',
-                        isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
+                        'relative flex items-center gap-3 px-2.5 py-2 rounded-md transition-colors text-[13.5px]',
                         active
-                          ? 'bg-secondary text-foreground font-medium'
-                          : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
+                          ? 'bg-secondary/70 text-[color:var(--sidebar-fg)] font-medium'
+                          : 'text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 hover:text-[color:var(--sidebar-fg)]',
                       )}
                     >
-                      {active && isSidebarOpen && (
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-primary rounded-full" aria-hidden />
+                      {active && (
+                        <span
+                          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full"
+                          style={{ background: 'var(--sidebar-accent)' }}
+                          aria-hidden
+                        />
                       )}
                       <item.icon
                         size={16}
-                        className={cn(
-                          'shrink-0',
-                          active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
-                        )}
+                        className="shrink-0"
+                        style={active ? { color: 'var(--sidebar-accent)' } : undefined}
                       />
-                      {isSidebarOpen && <span>{item.label}</span>}
+                      <span>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -313,55 +255,58 @@ export default function Layout({ children }: LayoutProps) {
           ))}
         </nav>
 
-        <div className="px-2 py-3 border-t border-border">
-          {isSidebarOpen && user && (
-            <div className="px-2 py-2 mb-1">
-              <p className="text-[13px] font-medium text-foreground truncate">{user.full_name}</p>
-              <p className="eyebrow mt-0.5">{user.role}</p>
+        <div className="px-3 py-4 border-t border-border space-y-2">
+          {user && (
+            <div className="flex items-center gap-2.5 px-2 py-1.5">
+              <div className="h-8 w-8 rounded-md bg-secondary/80 font-mono text-[11px] font-semibold flex items-center justify-center text-[color:var(--sidebar-fg)]">
+                {initials}
+              </div>
+              <div className="leading-tight min-w-0 flex-1">
+                <p className="text-[13px] font-medium text-[color:var(--sidebar-fg)] truncate">
+                  {user.full_name}
+                </p>
+                <p className="eyebrow mt-0.5">{user.role}</p>
+              </div>
             </div>
           )}
-          <button
-            onClick={() => setShowChangePassword(true)}
-            className={cn(
-              'flex items-center rounded-md transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground w-full text-[13px]',
-              isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
-            )}
-          >
-            <KeyRound size={15} className="shrink-0" />
-            {isSidebarOpen && <span>Change password</span>}
-          </button>
-          <button
-            onClick={handleLogout}
-            className={cn(
-              'flex items-center rounded-md transition-colors text-muted-foreground hover:bg-red-50 hover:text-destructive w-full text-[13px]',
-              isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
-            )}
-          >
-            <LogOut size={15} className="shrink-0" />
-            {isSidebarOpen && <span>Sign out</span>}
-          </button>
+          <div className="space-y-0.5">
+            <button
+              onClick={() => setShowChangePassword(true)}
+              className="flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 hover:text-[color:var(--sidebar-fg)] w-full text-[13px] px-2.5 py-1.5 transition-colors"
+            >
+              <KeyRound size={14} className="shrink-0" />
+              <span>Change password</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 rounded-md text-[color:var(--sidebar-muted-fg)] hover:bg-red-950/40 hover:text-red-300 w-full text-[13px] px-2.5 py-1.5 transition-colors"
+            >
+              <LogOut size={14} className="shrink-0" />
+              <span>Sign out</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm z-40 md:hidden"
             />
-            <motion.div
+            <motion.aside
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 240 }}
-              className="fixed inset-y-0 left-0 w-72 bg-card z-50 md:hidden shadow-2xl flex flex-col border-r border-border"
+              className="sidebar-dark fixed inset-y-0 left-0 w-72 z-50 md:hidden shadow-pop flex flex-col border-r border-border"
             >
               <div className="h-14 px-4 flex items-center justify-between border-b border-border">
-                <BrandMark />
+                <BrandLockup inverted size={28} />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 hover:bg-secondary rounded-md transition-colors"
+                  className="p-2 hover:bg-secondary rounded-md text-[color:var(--sidebar-fg)] transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -381,11 +326,14 @@ export default function Layout({ children }: LayoutProps) {
                             className={cn(
                               'flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] transition-colors',
                               active
-                                ? 'bg-secondary text-foreground font-medium'
-                                : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
+                                ? 'bg-secondary/70 text-[color:var(--sidebar-fg)] font-medium'
+                                : 'text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40',
                             )}
                           >
-                            <item.icon size={18} className={active ? 'text-primary' : ''} />
+                            <item.icon
+                              size={18}
+                              style={active ? { color: 'var(--sidebar-accent)' } : undefined}
+                            />
                             <span>{item.label}</span>
                           </Link>
                         );
@@ -397,34 +345,35 @@ export default function Layout({ children }: LayoutProps) {
               <div className="p-3 border-t border-border">
                 {user && (
                   <div className="px-2 py-2">
-                    <p className="text-[14px] font-medium text-foreground truncate">{user.full_name}</p>
+                    <p className="text-[14px] font-medium text-[color:var(--sidebar-fg)] truncate">{user.full_name}</p>
                     <p className="eyebrow mt-0.5">{user.role}</p>
                   </div>
                 )}
                 <button
                   onClick={() => { setIsMobileMenuOpen(false); setShowChangePassword(true); }}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-muted-foreground hover:bg-secondary hover:text-foreground rounded-md transition-colors"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-[color:var(--sidebar-muted-fg)] hover:bg-secondary/40 rounded-md transition-colors"
                 >
                   <KeyRound size={16} /> Change password
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-muted-foreground hover:bg-red-50 hover:text-destructive rounded-md transition-colors"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-[color:var(--sidebar-muted-fg)] hover:bg-red-950/40 hover:text-red-300 rounded-md transition-colors"
                 >
                   <LogOut size={16} /> Sign out
                 </button>
               </div>
-            </motion.div>
+            </motion.aside>
           </>
         )}
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <header className="hidden md:flex h-14 bg-card/80 backdrop-blur-sm border-b border-border items-center justify-between px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <span className="eyebrow">/</span>
-            <h1 className="heading text-[15px] font-semibold text-foreground">{pageTitle}</h1>
+      <main className="flex-1 flex flex-col min-w-0 bg-background">
+        <header className="hidden md:flex h-16 bg-background/80 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30">
+          <div className="flex items-baseline gap-3">
+            <span className="eyebrow">{isAdmin && location.pathname.startsWith('/settings') ? 'administration' : 'workspace'}</span>
+            <span className="text-muted-foreground/50">·</span>
+            <h1 className="display text-[18px] text-foreground leading-none">{pageTitle}</h1>
           </div>
           <div className="relative" ref={userMenuRef}>
             <button
@@ -435,7 +384,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="text-[13px] font-medium text-foreground">{user?.full_name || ''}</p>
                 <p className="eyebrow">{user?.role || ''}</p>
               </div>
-              <div className="w-8 h-8 rounded-md bg-foreground text-primary font-mono text-[11px] font-semibold flex items-center justify-center">
+              <div className="w-8 h-8 rounded-md bg-foreground text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center">
                 {initials}
               </div>
             </button>
@@ -446,17 +395,17 @@ export default function Layout({ children }: LayoutProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.97 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 top-full mt-1.5 w-48 bg-popover rounded-md border border-border shadow-lg overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-1.5 w-52 bg-popover rounded-md border border-border shadow-pop overflow-hidden z-50"
                 >
                   <button
                     onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-foreground hover:bg-secondary transition-colors"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-foreground hover:bg-secondary transition-colors"
                   >
                     <KeyRound size={14} className="text-muted-foreground" /> Change password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-foreground hover:bg-red-50 hover:text-destructive transition-colors border-t border-border"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-foreground hover:bg-red-50 hover:text-destructive transition-colors border-t border-border"
                   >
                     <LogOut size={14} className="text-muted-foreground" /> Sign out
                   </button>
@@ -466,7 +415,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-7">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -481,8 +430,8 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden h-14 bg-card border-t border-border flex items-center justify-around px-2 sticky bottom-0 z-40">
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden sidebar-dark h-14 flex items-center justify-around px-2 sticky bottom-0 z-40 border-t border-border">
         {navItems.slice(0, 4).map((item) => {
           const active = isActive(item.path);
           return (
@@ -491,17 +440,19 @@ export default function Layout({ children }: LayoutProps) {
               to={item.path}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 py-1 transition-colors',
-                active ? 'text-foreground' : 'text-muted-foreground',
+                active ? 'text-[color:var(--sidebar-fg)]' : 'text-[color:var(--sidebar-muted-fg)]',
               )}
             >
-              <item.icon size={18} className={active ? 'text-primary' : ''} />
+              <item.icon
+                size={18}
+                style={active ? { color: 'var(--sidebar-accent)' } : undefined}
+              />
               <span className="text-[10px] mt-0.5">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Change Password Modal */}
       <AnimatePresence>
         {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
       </AnimatePresence>

@@ -116,7 +116,7 @@ export default function EngagementPanel({
                     fontFamily: 'JetBrains Mono, ui-monospace, monospace',
                   }}
                 />
-                <Bar dataKey="value" fill="#1d4ed8" radius={[2, 2, 0, 0]} barSize={32}>
+                <Bar dataKey="value" fill="#134e4a" radius={[2, 2, 0, 0]} barSize={32}>
                   <LabelList
                     dataKey="value"
                     position="top"

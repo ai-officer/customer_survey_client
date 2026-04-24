@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ClipboardCheck, Eye, EyeOff } from '../lib/icons';
+import { Eye, EyeOff } from '../lib/icons';
 import { useAuth } from '../context/AuthContext';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BrandLockup } from '@/components/ui/brand-mark';
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -35,24 +35,55 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-7">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-foreground rounded-md relative">
-            <ClipboardCheck size={22} className="text-primary" />
-            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 bg-primary rounded-full" aria-hidden />
-          </div>
-          <div>
-            <div className="eyebrow">authentication / sign-in</div>
-            <h1 className="heading text-[26px] font-semibold text-foreground mt-1 leading-tight">
-              Customer Survey System
-            </h1>
-          </div>
+    <div className="min-h-screen grid md:grid-cols-2">
+      {/* Left: editorial hero on dark surface */}
+      <aside className="sidebar-dark relative hidden md:flex flex-col justify-between p-12 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 20% 30%, oklch(0.78 0.13 175) 0%, transparent 50%),' +
+              'radial-gradient(circle at 80% 70%, oklch(0.78 0.13 175) 0%, transparent 45%)',
+          }}
+          aria-hidden
+        />
+        <BrandLockup inverted size={40} />
+
+        <div className="relative max-w-md">
+          <div className="eyebrow mb-6">a customer survey platform</div>
+          <blockquote className="font-display italic font-medium text-[40px] leading-[1.1] tracking-tight text-[color:var(--sidebar-fg)]">
+            Measure what matters.
+            <span className="block not-italic font-normal text-[color:var(--sidebar-muted-fg)] mt-3 text-[22px] leading-snug">
+              Precise feedback, considered decisions, a record of voice across every engagement.
+            </span>
+          </blockquote>
         </div>
 
-        <Card className="p-6">
+        <div className="relative flex items-end justify-between gap-6">
+          <div className="eyebrow">
+            © {new Date().getFullYear()} · Global Officium Ltd.
+          </div>
+          <div className="eyebrow">Manila · Philippines</div>
+        </div>
+      </aside>
+
+      {/* Right: auth form on cream canvas */}
+      <section className="flex items-center justify-center p-6 md:p-12 bg-background">
+        <div className="w-full max-w-sm space-y-7">
+          <div className="md:hidden">
+            <BrandLockup size={36} />
+          </div>
+
+          <div className="space-y-2">
+            <div className="eyebrow">sign in</div>
+            <h1 className="display text-[36px] text-foreground">Welcome back.</h1>
+            <p className="text-[14px] text-muted-foreground">
+              Enter your credentials to access the console.
+            </p>
+          </div>
+
           {error && (
-            <div className="mb-4 px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+            <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
               <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
               {error}
             </div>
@@ -95,23 +126,19 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full mt-1">
+            <Button type="submit" disabled={loading} size="lg" className="w-full mt-2">
               {loading ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
-        </Card>
 
-        <p className="text-center text-[12px]">
-          <span className="text-muted-foreground">No account? </span>
-          <Link to="/register" className="text-foreground font-medium hover:underline underline-offset-4">
-            Request access
-          </Link>
-        </p>
-
-        <p className="eyebrow text-center">
-          global officium limited inc. · customer survey system
-        </p>
-      </div>
+          <div className="flex items-center justify-between text-[12.5px] pt-2 border-t border-border">
+            <span className="text-muted-foreground">No account yet?</span>
+            <Link to="/register" className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 hover:underline">
+              Request access →
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

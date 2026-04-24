@@ -1,5 +1,4 @@
 import React from 'react';
-import { Users, ClipboardCheck, MessageSquare, TrendingUp, ThumbsUp } from '../lib/icons';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -9,36 +8,93 @@ import EngagementPanel from './EngagementPanel';
 import { DateRangePicker, DateRange } from './ui/DateRangePicker';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
+import { Rating } from '@/components/ui/rating';
 
-const StatCard = ({ icon: Icon, label, value, trend, subtitle }: any) => (
-  <Card className="p-5">
-    <div className="flex items-start justify-between">
-      <div className="eyebrow flex items-center gap-1.5">
-        {Icon && <Icon size={12} className="opacity-60" />}
-        <span>{label}</span>
+const ACCENT = '#134e4a';  // teal-900, matches --primary
+const ACCENT_SOFT = 'rgba(19, 78, 74, 0.18)';
+
+/**
+ * Horizontal stat ribbon — denser than a grid of cards. A single container
+ * with divided columns, eyebrow + big number + optional subtitle/indicator.
+ * Enterprise pattern (Stripe, Attio, Mercury all use this).
+ */
+function StatRibbon({
+  stats, loading,
+}: {
+  stats: any;
+  loading: boolean;
+}) {
+  const fmt = (v: any) => (loading ? '—' : v ?? 0);
+
+  const csatValue = loading ? null : Number(stats?.csat ?? 0);
+  const nps = loading ? null : Number(stats?.nps ?? 0);
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-border">
+        <Cell label="Total responses" value={fmt(stats?.totalResponses)} />
+        <Cell
+          label="Active surveys"
+          value={fmt(stats?.activeSurveys)}
+          subtitle={`of ${stats?.surveyCount ?? 0} total`}
+        />
+        <Cell
+          label="Completion rate"
+          value={loading ? '—' : `${stats?.completionRate ?? 0}%`}
+        />
+        <Cell label="Avg. CSAT">
+          <div className="num text-[28px] font-semibold text-foreground leading-none">
+            {csatValue == null ? '—' : csatValue.toFixed(1)}
+          </div>
+          <div className="mt-2.5">
+            <Rating value={csatValue} showValue={false} size="sm" />
+          </div>
+        </Cell>
+        <Cell
+          label="NPS score"
+          value={nps == null ? '—' : nps.toFixed(1)}
+          subtitle="net promoter"
+          trend={nps != null && nps >= 0 ? 'pos' : nps != null && nps < 0 ? 'neg' : undefined}
+        />
       </div>
-      {trend !== undefined && (
-        <span className={`num text-[10.5px] font-medium px-1.5 py-0.5 rounded-sm ${
-          trend > 0 ? 'bg-emerald-50 text-emerald-700'
-            : trend < 0 ? 'bg-red-50 text-red-700'
-            : 'bg-secondary text-muted-foreground'
-        }`}>
-          {trend > 0 ? '+' : ''}{trend}%
-        </span>
+    </Card>
+  );
+}
+
+function Cell({
+  label,
+  value,
+  subtitle,
+  trend,
+  children,
+}: {
+  label: string;
+  value?: React.ReactNode;
+  subtitle?: string;
+  trend?: 'pos' | 'neg';
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="px-5 py-5 flex flex-col gap-1.5">
+      <div className="eyebrow">{label}</div>
+      {children ?? (
+        <div className="num text-[28px] font-semibold text-foreground leading-none mt-1">
+          {value}
+        </div>
+      )}
+      {subtitle && (
+        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
+          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
+          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-destructive" aria-hidden />}
+          <span>{subtitle}</span>
+        </div>
       )}
     </div>
-    <div className="num mt-4 text-[30px] font-semibold leading-none text-foreground">
-      {value}
-    </div>
-    {subtitle && (
-      <p className="text-[11.5px] text-muted-foreground mt-2">{subtitle}</p>
-    )}
-  </Card>
-);
+  );
+}
 
 function ResponseTrend({ data }: { data: Array<{ name: string; responses: number }> }) {
   const total = data.reduce((sum, d) => sum + d.responses, 0);
@@ -52,67 +108,65 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
           <div className="eyebrow mb-1">response trend</div>
           <CardTitle>Last 7 days</CardTitle>
         </div>
-        <Badge variant="outline"><span className="num">{total}</span>&nbsp;total</Badge>
+        <span className="num text-[12px] text-muted-foreground">{total} total</span>
       </CardHeader>
 
       <div className="grid grid-cols-3 divide-x divide-border">
-        <div className="px-5 py-4">
-          <div className="eyebrow">total</div>
-          <div className="num mt-2 text-[22px] font-semibold leading-none">{total}</div>
-          <p className="text-[11px] text-muted-foreground mt-2">responses</p>
-        </div>
-        <div className="px-5 py-4">
-          <div className="eyebrow">avg / day</div>
-          <div className="num mt-2 text-[22px] font-semibold leading-none">{(total / 7).toFixed(1)}</div>
-          <p className="text-[11px] text-muted-foreground mt-2">over 7 d</p>
-        </div>
-        <div className="px-5 py-4">
-          <div className="eyebrow">peak day</div>
-          <div className="num mt-2 text-[22px] font-semibold leading-none">{peakValue}</div>
-          <p className="text-[11px] text-muted-foreground mt-2">on {peakDay?.name ?? '—'}</p>
-        </div>
+        <MiniStat label="total" value={total} subtitle="responses" />
+        <MiniStat label="avg / day" value={(total / 7).toFixed(1)} subtitle="over 7 d" />
+        <MiniStat label="peak" value={peakValue} subtitle={`on ${peakDay?.name ?? '—'}`} />
       </div>
 
-      <div className="px-3 pt-3 pb-2 flex-1 min-h-[10rem] border-t border-border">
+      <div className="px-3 pt-2 pb-2 flex-1 min-h-40 border-t border-border">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 6 }}>
+          <AreaChart data={data} margin={{ top: 6, right: 8, left: -8, bottom: 6 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#1d4ed8" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0} />
+                <stop offset="0%" stopColor={ACCENT} stopOpacity={0.2} />
+                <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#78716c', fontSize: 10, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
+              tick={{ fill: '#8a857e', fontSize: 10, fontFamily: 'Geist Mono, ui-monospace, monospace' }}
               height={22}
             />
             <YAxis hide domain={[0, 'dataMax + 1']} />
             <Tooltip
-              cursor={{ stroke: '#1d4ed8', strokeOpacity: 0.4, strokeDasharray: '2 4' }}
+              cursor={{ stroke: ACCENT, strokeOpacity: 0.4, strokeDasharray: '2 4' }}
               contentStyle={{
-                borderRadius: 8,
-                border: '1px solid #e7e5e4',
-                boxShadow: '0 4px 12px -3px rgba(0,0,0,0.08)',
-                fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+                borderRadius: 6,
+                border: '1px solid #e7e5e0',
+                boxShadow: '0 4px 14px -3px rgba(16,24,40,0.08)',
+                fontFamily: 'Geist Mono, ui-monospace, monospace',
                 fontSize: 11,
               }}
             />
             <Area
               type="monotone"
               dataKey="responses"
-              stroke="#1d4ed8"
-              strokeWidth={1.75}
+              stroke={ACCENT}
+              strokeWidth={1.5}
               fill="url(#trendFill)"
-              dot={{ r: 2.5, fill: '#1d4ed8', strokeWidth: 0 }}
-              activeDot={{ r: 4.5, fill: '#1d4ed8', stroke: '#ffffff', strokeWidth: 2 }}
+              dot={{ r: 2.5, fill: ACCENT, strokeWidth: 0 }}
+              activeDot={{ r: 4.5, fill: ACCENT, stroke: '#ffffff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
     </Card>
+  );
+}
+
+function MiniStat({ label, value, subtitle }: { label: string; value: React.ReactNode; subtitle: string }) {
+  return (
+    <div className="px-4 py-3">
+      <div className="eyebrow">{label}</div>
+      <div className="num mt-1.5 text-[20px] font-semibold leading-none">{value}</div>
+      <p className="text-[11px] text-muted-foreground mt-1">{subtitle}</p>
+    </div>
   );
 }
 
@@ -136,20 +190,20 @@ function TopSurveys({ data }: { data: Array<{ name: string; responses: number }>
       ) : (
         <div className="flex-1 flex flex-col divide-y divide-border">
           {sorted.map((row, i) => (
-            <div key={`${row.name}-${i}`} className="flex-1 min-h-[56px] px-5 py-3 flex items-center gap-3">
+            <div key={`${row.name}-${i}`} className="flex-1 min-h-14 px-5 py-3 flex items-center gap-3">
               <span className="num text-[11px] font-medium text-muted-foreground w-6">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <p className="flex-1 text-sm font-medium text-foreground truncate">
+              <p className="flex-1 text-[13.5px] font-medium text-foreground truncate">
                 {row.name || 'Untitled'}
               </p>
-              <div className="hidden sm:block w-20 h-1 bg-secondary rounded-full overflow-hidden shrink-0">
+              <div className="hidden sm:block w-24 h-1 bg-muted rounded-full overflow-hidden shrink-0">
                 <div
-                  className="h-full bg-primary rounded-full transition-all duration-500"
-                  style={{ width: `${(row.responses / max) * 100}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${(row.responses / max) * 100}%`, background: ACCENT }}
                 />
               </div>
-              <span className="num text-sm font-semibold text-foreground w-7 text-right">
+              <span className="num text-[13.5px] font-semibold text-foreground w-7 text-right">
                 {row.responses}
               </span>
             </div>
@@ -195,23 +249,22 @@ export default function Dashboard() {
     setSurveyFilter('all');
   };
 
-  const fmt = (v: any) => (loading ? '—' : v ?? 0);
-
   return (
     <div className="space-y-7">
-      {/* Page eyebrow + live status */}
-      <div className="flex items-center justify-between">
+      {/* Page hero — editorial Fraunces display */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="eyebrow">dashboard</div>
-          <h1 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
-            Customer Satisfaction Overview
+          <div className="eyebrow mb-2">overview</div>
+          <h1 className="display text-[32px] text-foreground leading-tight">
+            Customer Satisfaction
           </h1>
+          <p className="text-[13px] text-muted-foreground mt-1.5">
+            A consolidated view of every signal collected this period.
+          </p>
         </div>
-        <div className="hidden sm:flex items-center gap-2">
+        <div className="flex items-center gap-2 text-[12px]">
           <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
-            }`}
+            className={loading ? 'h-2 w-2 rounded-full bg-amber-500 animate-pulse' : 'h-2 w-2 rounded-full bg-emerald-600'}
             aria-hidden
           />
           <span className="eyebrow">{loading ? 'syncing' : 'live'}</span>
@@ -222,14 +275,12 @@ export default function Dashboard() {
       <Card className="p-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="eyebrow pl-1 pr-2">filters</span>
-
           <DateRangePicker value={dateRange} onChange={setDateRange} />
-
           <Select
             value={statusFilter}
             onValueChange={(v) => { setStatusFilter(v); if (v !== 'all') setSurveyFilter('all'); }}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-35">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -239,12 +290,11 @@ export default function Dashboard() {
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
-
           <Select
             value={surveyFilter}
             onValueChange={(v) => { setSurveyFilter(v); if (v !== 'all') setStatusFilter('all'); }}
           >
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className="w-55">
               <SelectValue placeholder="All surveys" />
             </SelectTrigger>
             <SelectContent>
@@ -254,47 +304,17 @@ export default function Dashboard() {
               ))}
             </SelectContent>
           </Select>
-
           {hasFilter && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Reset
-            </Button>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Reset</Button>
           )}
-
-          {loading && (
-            <span className="eyebrow ml-auto text-primary animate-pulse">updating</span>
-          )}
+          {loading && <span className="eyebrow ml-auto animate-pulse">updating</span>}
         </div>
       </Card>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <StatCard icon={Users} label="total responses" value={fmt(stats?.totalResponses)} />
-        <StatCard
-          icon={ClipboardCheck}
-          label="active surveys"
-          value={fmt(stats?.activeSurveys)}
-          subtitle={`of ${stats?.surveyCount ?? 0} total`}
-        />
-        <StatCard
-          icon={MessageSquare}
-          label="completion rate"
-          value={loading ? '—' : `${stats?.completionRate ?? 0}%`}
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="avg. CSAT"
-          value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`}
-        />
-        <StatCard
-          icon={ThumbsUp}
-          label="NPS score"
-          value={fmt(stats?.nps)}
-          subtitle="net promoter"
-        />
-      </div>
+      {/* Dense stat ribbon */}
+      <StatRibbon stats={stats} loading={loading} />
 
-      {/* Engagement panel (Responses + Driver Heatmap) */}
+      {/* Engagement (responses chart + driver heatmap) */}
       <EngagementPanel
         ratingDistribution={stats?.ratingDistribution ?? null}
         departmentEngagement={stats?.departmentEngagement ?? null}

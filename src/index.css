@@ -1,5 +1,8 @@
-/* Fonts must come first. Single family: Geist (sans + mono). Clean, modern, enterprise. */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+/* Fonts first — CSS @import must precede other statements.
+   Fraunces (variable serif) for display / hero.
+   Instrument Sans for body / UI.
+   Geist Mono for numerics / tabular. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Geist+Mono:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -7,8 +10,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", "Instrument Sans", ui-serif, Georgia, serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --color-background: var(--background);
@@ -38,48 +41,82 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
-  --shadow-pop: 0 8px 24px -8px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --shadow-pop: 0 12px 28px -12px rgba(16, 24, 40, 0.20), 0 2px 6px rgba(16, 24, 40, 0.06);
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  /* Neutral base — slightly cooler, closer to Linear/Attio/Mercury */
-  --background: oklch(0.985 0.002 250);            /* #fafafb  near-white */
-  --foreground: oklch(0.180 0.010 260);            /* #0f172a  slate-950-ish */
+  /* === Light surface (content canvas) === */
+  --background: oklch(0.980 0.004 85);             /* #fafaf7  warm cream */
+  --foreground: oklch(0.175 0.005 50);             /* #111113  warm near-black */
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.180 0.010 260);
+  --card: oklch(1 0 0);                             /* #ffffff */
+  --card-foreground: oklch(0.175 0.005 50);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.180 0.010 260);
+  --popover-foreground: oklch(0.175 0.005 50);
 
-  --primary: oklch(0.505 0.240 262);               /* #1d4ed8  blue-700 */
-  --primary-foreground: oklch(0.985 0.002 250);
+  --primary: oklch(0.380 0.060 185);               /* #134e4a  teal-900 — refined ink */
+  --primary-foreground: oklch(0.980 0.004 85);     /* cream on ink */
 
-  --secondary: oklch(0.960 0.005 250);             /* neutral-100 */
-  --secondary-foreground: oklch(0.240 0.010 260);
+  --secondary: oklch(0.960 0.005 80);              /* warm neutral-100 */
+  --secondary-foreground: oklch(0.260 0.008 60);
 
-  --muted: oklch(0.960 0.005 250);
-  --muted-foreground: oklch(0.530 0.010 260);      /* neutral-500 */
+  --muted: oklch(0.960 0.005 80);
+  --muted-foreground: oklch(0.470 0.010 60);       /* #6b6660  warm stone-600 */
 
-  --accent: oklch(0.505 0.240 262);
-  --accent-foreground: oklch(0.985 0.002 250);
+  --accent: oklch(0.380 0.060 185);
+  --accent-foreground: oklch(0.980 0.004 85);
 
-  --destructive: oklch(0.510 0.220 28);
-  --destructive-foreground: oklch(0.985 0.002 250);
+  --destructive: oklch(0.485 0.215 28);            /* #991b1b  red-800, muted */
+  --destructive-foreground: oklch(0.980 0.004 85);
 
-  --success: oklch(0.606 0.145 160);
-  --success-foreground: oklch(0.985 0.002 250);
+  --success: oklch(0.520 0.130 160);               /* #047857  emerald-700 */
+  --success-foreground: oklch(0.980 0.004 85);
 
-  --border: oklch(0.915 0.005 250);                /* #e5e7eb-ish neutral-200 */
-  --input: oklch(0.915 0.005 250);
-  --ring: oklch(0.505 0.240 262);
+  --border: oklch(0.905 0.008 75);                 /* warm stone-200 */
+  --input: oklch(0.905 0.008 75);
+  --ring: oklch(0.380 0.060 185);
 
-  --viz-1: oklch(0.400 0.200 262);
-  --viz-2: oklch(0.505 0.240 262);
-  --viz-3: oklch(0.650 0.220 15);
+  --viz-1: oklch(0.280 0.050 185);                 /* teal-950 */
+  --viz-2: oklch(0.380 0.060 185);                 /* teal-900 */
+  --viz-3: oklch(0.600 0.180 25);                  /* earthy terracotta accent */
+
+  /* === Dark surface (sidebar) — defined here so .sidebar-dark can reassign === */
+  --sidebar-bg: oklch(0.195 0.030 265);            /* #0f172a  deep ink */
+  --sidebar-fg: oklch(0.925 0.015 250);            /* #e5edf5  soft cream-slate */
+  --sidebar-surface: oklch(0.235 0.030 262);       /* slightly lifted surface */
+  --sidebar-muted: oklch(0.280 0.028 262);
+  --sidebar-muted-fg: oklch(0.660 0.025 255);      /* slate-400 */
+  --sidebar-border: oklch(0.290 0.028 262);
+  --sidebar-accent: oklch(0.780 0.130 175);        /* bright mint — active state inside dark */
+}
+
+/* Cascading dark surface — drop on any element and every child inherits dark tokens.
+   Lets shadcn primitives (Button/Card/Badge/etc) work seamlessly inside the sidebar. */
+.sidebar-dark {
+  --background: var(--sidebar-bg);
+  --foreground: var(--sidebar-fg);
+  --card: var(--sidebar-surface);
+  --card-foreground: var(--sidebar-fg);
+  --popover: var(--sidebar-surface);
+  --popover-foreground: var(--sidebar-fg);
+  --secondary: var(--sidebar-muted);
+  --secondary-foreground: var(--sidebar-fg);
+  --muted: var(--sidebar-muted);
+  --muted-foreground: var(--sidebar-muted-fg);
+  --border: var(--sidebar-border);
+  --input: var(--sidebar-border);
+  --ring: var(--sidebar-accent);
+  --primary: var(--sidebar-accent);
+  --primary-foreground: var(--sidebar-bg);
+  --accent: var(--sidebar-accent);
+  --accent-foreground: var(--sidebar-bg);
+
+  background: var(--sidebar-bg);
+  color: var(--sidebar-fg);
 }
 
 @layer base {
@@ -94,31 +131,41 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
-    font-feature-settings: "cv01", "cv02", "cv03", "cv04", "cv11", "ss03";
+    font-feature-settings: "ss01", "cv11";
+    font-optical-sizing: auto;
   }
 
-  h1, h2, h3, h4, .heading, .display {
+  /* h1 and .display use Fraunces — editorial gravitas for hero moments */
+  h1, .display {
     font-family: var(--font-display);
+    font-weight: 500;
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+  }
+
+  /* Subordinate headings use UI font — functional, not decorative */
+  h2, h3, h4, .heading {
+    font-family: var(--font-sans);
     font-weight: 600;
-    letter-spacing: -0.018em;
+    letter-spacing: -0.014em;
   }
 }
 
 @layer components {
-  /* Tabular mono for numeric cells in data contexts only. */
   .num {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.018em;
   }
 
-  /* Tracked-caps section label (sans, not mono). Linear/Attio voice. */
+  /* Eyebrow: sans tracked-caps, functional */
   .eyebrow {
     font-family: var(--font-sans);
     font-size: 10.5px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.11em;
     color: var(--muted-foreground);
     line-height: 1;
   }
@@ -142,18 +189,34 @@
   .shadow-pop {
     box-shadow: var(--shadow-pop);
   }
+
+  /* Branded dashed chart grid — use in Recharts CartesianGrid stroke */
+  .chart-grid {
+    stroke: var(--border);
+    stroke-dasharray: 2 4;
+  }
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.880 0.005 250);
+  background: oklch(0.880 0.008 75);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: oklch(0.820 0.005 250); background-clip: padding-box; border: 2px solid transparent; }
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.820 0.008 75);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Inside dark surfaces, scrollbar picks up sidebar tokens */
+.sidebar-dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.340 0.030 262);
+  background-clip: padding-box;
+}
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
