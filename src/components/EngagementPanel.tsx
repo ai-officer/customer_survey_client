@@ -1,16 +1,14 @@
 import React from 'react';
-import { TrendingDown, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
-import { cn } from '../lib/utils';
 
-const HEATMAP_COLUMNS = [
-  'Participation',
-  'e-NPS',
-  'Autonomy',
-  'Environment',
-  'Leadership',
-  'Management',
-  'Balance',
+const HEATMAP_COLUMNS: { key: string; label: string; align: 'right' | 'center' }[] = [
+  { key: 'participation', label: 'Participation', align: 'right' },
+  { key: 'enps',          label: 'e-NPS',         align: 'right' },
+  { key: 'autonomy',      label: 'Autonomy',      align: 'right' },
+  { key: 'environment',   label: 'Environment',   align: 'right' },
+  { key: 'leadership',    label: 'Leadership',    align: 'right' },
+  { key: 'management',    label: 'Management',    align: 'right' },
+  { key: 'balance',       label: 'Balance',       align: 'right' },
 ];
 
 const PLACEHOLDER_COL_START = 2;
@@ -36,8 +34,7 @@ interface EngagementPanelProps {
   loading?: boolean;
 }
 
-// Warm editorial heatmap scale — terracotta → olive → forest
-function cellColor(columnIndex: number, value: number): { bg: string; text: string } {
+function cellColor(columnIndex: number, value: number): string {
   let score: number;
   if (columnIndex === 0) {
     score = Math.max(0, Math.min(1, value / 100));
@@ -46,17 +43,15 @@ function cellColor(columnIndex: number, value: number): { bg: string; text: stri
   } else {
     score = Math.max(0, Math.min(1, value / 10));
   }
-
-  // Warm ramp: burnt sienna → apricot → straw → sage → moss
-  if (score < 0.25) return { bg: '#e6a087', text: '#5c1f0a' };
-  if (score < 0.45) return { bg: '#f0c79a', text: '#6e3c16' };
-  if (score < 0.6)  return { bg: '#eddfa7', text: '#5a4b18' };
-  if (score < 0.8)  return { bg: '#c6cf9a', text: '#3b4820' };
-  return { bg: '#8fae82', text: '#1e3220' };
+  if (score < 0.25) return 'var(--heat-1)';
+  if (score < 0.45) return 'var(--heat-2)';
+  if (score < 0.6)  return 'var(--heat-3)';
+  if (score < 0.8)  return 'var(--heat-4)';
+  return 'var(--heat-5)';
 }
 
 function formatCell(columnIndex: number, value: number): string {
-  if (columnIndex === 0) return value.toFixed(1);
+  if (columnIndex === 0) return `${value.toFixed(1)}%`;
   if (columnIndex === 1) return `${Math.round(value)}`;
   return value.toFixed(1);
 }
@@ -89,150 +84,114 @@ export default function EngagementPanel({
 
   return (
     <div className="space-y-8">
-      {/* Participation — the hero number, set as a pull-quote */}
-      <div className="relative py-6 border-y border-line flex flex-wrap items-baseline gap-x-10 gap-y-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-muted font-medium">
-            Participation
-          </p>
-          <p className="mt-2 font-display italic text-sm text-muted max-w-xs">
-            share of distributed surveys that were completed
-          </p>
+      {/* Participation — professional KPI row */}
+      <div className="bg-surface border border-line">
+        <div className="px-6 py-4 border-b border-line flex items-baseline justify-between">
+          <span className="label">Participation Rate</span>
+          {delta !== null && delta !== 0 && (
+            <span
+              className="tabular text-xs"
+              style={{ color: delta < 0 ? 'var(--color-accent)' : '#3d6b4a', fontVariantNumeric: 'tabular-nums lining-nums' }}
+            >
+              {delta < 0 ? '▼' : '▲'} {Math.abs(delta).toFixed(1)}pp vs. prior period
+            </span>
+          )}
+          {delta === null && !loading && (
+            <span className="label">Apply a date range to compare prior period</span>
+          )}
         </div>
-        <div className="flex items-baseline gap-1">
-          <span
-            className="font-display tabular text-ink leading-none"
-            style={{
-              fontSize: 'clamp(4rem, 9vw, 7rem)',
-              fontVariationSettings: '"opsz" 144, "SOFT" 100, "wght" 300',
-            }}
-          >
+        <div className="px-6 py-6 flex items-baseline gap-3">
+          <span className="text-[56px] font-light tabular leading-none text-ink">
             {loading ? '—' : displayRate}
           </span>
-          <span className="font-display text-3xl text-muted">%</span>
-        </div>
-        {delta !== null && delta !== 0 && (
-          <div
-            className={cn(
-              'flex items-center gap-1 font-display italic text-sm',
-              delta < 0 ? 'text-accent' : 'text-[color:#3b6147]'
-            )}
-          >
-            {delta < 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-            <span className="tabular">{Math.abs(delta).toFixed(1)}%</span>
-            <span className="text-muted not-italic text-[11px] uppercase tracking-[0.18em] ml-1">
-              vs. prior
-            </span>
-          </div>
-        )}
-        {delta === null && !loading && (
-          <span className="text-[11px] uppercase tracking-[0.22em] text-muted">
-            pick a date range to compare
+          <span className="text-2xl text-muted">%</span>
+          <span className="ml-auto label tabular">
+            of distributed surveys completed
           </span>
-        )}
+        </div>
       </div>
 
-      {/* Responses + Drivers, bound as a spread */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
-        {/* Responses — left page */}
-        <article className="xl:col-span-2 bg-surface border border-line rounded-sm p-7 space-y-6 grain">
-          <header className="flex items-baseline gap-3">
-            <span className="text-[10px] uppercase tracking-[0.28em] text-accent font-medium">
-              Fig. I
-            </span>
-            <h2 className="font-display text-2xl text-ink font-light tracking-tight">
-              Responses
-            </h2>
+      {/* Two-column: Responses + Drivers */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* Responses */}
+        <section className="xl:col-span-2 bg-surface border border-line flex flex-col">
+          <header className="px-6 py-4 border-b border-line flex items-baseline justify-between">
+            <div className="flex items-center gap-3">
+              <span className="label tabular" style={{ fontSize: '10px' }}>Fig. 01</span>
+              <h2 className="text-sm font-medium text-ink">Response Distribution</h2>
+            </div>
+            <span className="label">1–5 rating</span>
           </header>
-          <p className="font-display italic text-sm text-muted -mt-4">
-            Distribution of ratings, one through five.
-          </p>
-
-          <div className="h-64">
+          <div className="px-4 pt-4 pb-2 h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 24, right: 12, left: -10, bottom: 24 }}>
-                <CartesianGrid strokeDasharray="2 4" stroke="#e8ddd0" vertical={false} />
+              <BarChart data={chartData} margin={{ top: 16, right: 8, left: -12, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="0" stroke="#ebe9e4" vertical={false} />
                 <XAxis
                   dataKey="rating"
-                  axisLine={false}
+                  axisLine={{ stroke: '#d8d6d1' }}
                   tickLine={false}
-                  tick={{ fill: '#8a7f74', fontSize: 11, fontFamily: 'Instrument Sans' }}
-                  label={{ value: '1 — 5', position: 'insideBottom', offset: -8, fill: '#8a7f74', fontSize: 10, fontStyle: 'italic', fontFamily: 'Fraunces' }}
+                  tick={{ fill: '#6a6965', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
+                  height={30}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#8a7f74', fontSize: 11, fontFamily: 'Instrument Sans' }}
+                  tick={{ fill: '#6a6965', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
                   domain={[0, Math.ceil(maxBar * 1.2)]}
                   allowDecimals={false}
                   width={32}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(181, 71, 24, 0.08)' }}
+                  cursor={{ fill: 'rgba(122, 59, 30, 0.06)' }}
                   contentStyle={{
-                    background: '#1a1510',
+                    background: '#0f0f0e',
                     border: 'none',
                     borderRadius: 2,
-                    color: '#fbf8f3',
+                    color: '#f6f5f3',
                     fontSize: 11,
-                    fontFamily: 'Instrument Sans',
-                    padding: '8px 12px',
+                    fontFamily: 'IBM Plex Mono',
+                    padding: '6px 10px',
                   }}
-                  labelStyle={{ color: '#fbeadb', fontStyle: 'italic', fontFamily: 'Fraunces' }}
+                  labelStyle={{ color: '#a5a39d', textTransform: 'uppercase', letterSpacing: '0.08em' }}
                 />
-                <Bar dataKey="value" fill="#b54718" radius={[1, 1, 0, 0]} barSize={32}>
+                <Bar dataKey="value" fill="#7a3b1e" barSize={32}>
                   <LabelList
                     dataKey="value"
                     position="top"
-                    style={{ fill: '#1a1510', fontSize: 11, fontFamily: 'Fraunces', fontWeight: 400 }}
+                    style={{ fill: '#0f0f0e', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
                   />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-
-          <footer className="pt-4 border-t border-line flex items-baseline justify-between">
-            <span className="text-[10px] uppercase tracking-[0.22em] text-muted">Total</span>
-            <span className="font-display tabular text-2xl text-ink">{totalResponses}</span>
+          <footer className="mt-auto px-6 py-3 border-t border-line flex items-center justify-between">
+            <span className="label">Total Responses</span>
+            <span className="tabular text-base font-medium text-ink">{totalResponses}</span>
           </footer>
-        </article>
+        </section>
 
-        {/* Drivers — right page */}
-        <article className="xl:col-span-3 bg-surface border border-line rounded-sm p-7 space-y-5 grain">
-          <header className="flex items-baseline gap-3">
-            <span className="text-[10px] uppercase tracking-[0.28em] text-accent font-medium">
-              Fig. II
-            </span>
-            <h2 className="font-display text-2xl text-ink font-light tracking-tight">
-              Engagement, by driver
-            </h2>
+        {/* Drivers heatmap */}
+        <section className="xl:col-span-3 bg-surface border border-line flex flex-col">
+          <header className="px-6 py-4 border-b border-line flex items-baseline justify-between">
+            <div className="flex items-center gap-3">
+              <span className="label tabular" style={{ fontSize: '10px' }}>Fig. 02</span>
+              <h2 className="text-sm font-medium text-ink">Engagement by Driver</h2>
+            </div>
+            <span className="label">By team</span>
           </header>
-          <p className="font-display italic text-sm text-muted -mt-3">
-            A heatmap across departments. Participation and e-NPS are live; driver columns await question-level categorisation.
-          </p>
 
           {rows.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="font-display italic text-muted">
-                {loading ? 'Turning pages…' : 'Nothing to show yet — the column will fill as responses arrive.'}
-              </p>
+            <div className="py-16 text-center text-sm text-muted">
+              {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-2 px-2">
-              <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '4px 6px' }}>
+            <div className="overflow-x-auto">
+              <table className="data-table">
                 <thead>
                   <tr>
-                    <th className="text-left pb-2 pr-3 w-28 align-bottom">
-                      <span className="text-[10px] uppercase tracking-[0.24em] text-muted font-medium">
-                        Team
-                      </span>
-                    </th>
+                    <th style={{ width: '140px' }}>Team</th>
                     {HEATMAP_COLUMNS.map((col) => (
-                      <th key={col} className="pb-2 px-1 align-bottom">
-                        <span className="block text-center font-display italic text-[11px] text-muted whitespace-nowrap">
-                          {col}
-                        </span>
-                      </th>
+                      <th key={col.key} style={{ textAlign: col.align }}>{col.label}</th>
                     ))}
                   </tr>
                 </thead>
@@ -241,47 +200,32 @@ export default function EngagementPanel({
                     const cells: Array<number | null> = [
                       row.participationRate ?? null,
                       row.nps ?? null,
-                      null,
-                      null,
-                      null,
-                      null,
-                      null,
+                      null, null, null, null, null,
                     ];
                     return (
-                      <tr key={row.department} className="group">
-                        <td className="pr-3 align-middle">
-                          <span className="font-display text-ink text-sm leading-tight">
-                            {row.department}
-                          </span>
-                        </td>
+                      <tr key={row.department}>
+                        <td className="font-medium">{row.department}</td>
                         {cells.map((value, colIdx) => {
                           if (value == null) {
                             return (
-                              <td key={colIdx} className="p-0">
-                                <div
-                                  className={cn(
-                                    'h-9 min-w-14 rounded-sm flex items-center justify-center text-[11px] font-display italic',
-                                    colIdx >= PLACEHOLDER_COL_START
-                                      ? 'bg-[color:#f5eee2] text-[color:#c4b5a1]'
-                                      : 'bg-[color:#f5eee2] text-[color:#a99a85]'
-                                  )}
-                                  title={
-                                    colIdx >= PLACEHOLDER_COL_START
-                                      ? 'Awaiting driver-category data'
-                                      : 'No data'
-                                  }
-                                >
-                                  ·
-                                </div>
+                              <td
+                                key={colIdx}
+                                className="num text-muted"
+                                title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
+                              >
+                                —
                               </td>
                             );
                           }
-                          const { bg, text } = cellColor(colIdx, value);
                           return (
-                            <td key={colIdx} className="p-0">
+                            <td key={colIdx} className="num p-0">
                               <div
-                                className="h-9 min-w-14 rounded-sm flex items-center justify-center text-[12px] tabular font-medium transition-transform group-hover:scale-[1.02]"
-                                style={{ background: bg, color: text }}
+                                className="h-full w-full px-3 py-2.5 text-right text-white tabular"
+                                style={{
+                                  background: cellColor(colIdx, value),
+                                  fontVariantNumeric: 'tabular-nums lining-nums',
+                                  fontSize: 13,
+                                }}
                               >
                                 {formatCell(colIdx, value)}
                               </div>
@@ -296,15 +240,26 @@ export default function EngagementPanel({
             </div>
           )}
 
-          <footer className="pt-4 border-t border-line flex items-center justify-between text-[10px] uppercase tracking-[0.22em] text-muted">
-            <span>Warm → cool ≈ Low → high engagement</span>
-            <div className="flex items-center gap-1.5">
-              {['#e6a087', '#f0c79a', '#eddfa7', '#c6cf9a', '#8fae82'].map((c) => (
-                <span key={c} className="w-4 h-2 rounded-sm" style={{ background: c }} />
+          <footer className="mt-auto px-6 py-3 border-t border-line flex items-center justify-between">
+            <span className="label">Scale · Low → High</span>
+            <div className="flex items-center">
+              {[
+                'var(--heat-1)',
+                'var(--heat-2)',
+                'var(--heat-3)',
+                'var(--heat-4)',
+                'var(--heat-5)',
+              ].map((c, i) => (
+                <span
+                  key={i}
+                  className="inline-block w-6 h-2"
+                  style={{ background: c }}
+                  aria-hidden
+                />
               ))}
             </div>
           </footer>
-        </article>
+        </section>
       </div>
     </div>
   );

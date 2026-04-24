@@ -1,18 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300..600;1,400&family=IBM+Plex+Mono:ital,wght@0,400..500;1,400&family=IBM+Plex+Serif:ital,wght@0,400..500;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: "IBM Plex Serif", ui-serif, Georgia, serif;
 
-  /* Warm editorial palette — @theme auto-generates bg-*, text-*, border-* utilities */
-  --color-canvas: #fbf8f3;
-  --color-surface: #ffffff;
-  --color-ink: #1a1510;
-  --color-muted: #8a7f74;
-  --color-line: #e8ddd0;
-  --color-accent: #b54718;
-  --color-accent-soft: #fbeadb;
+  /* Professional neutral palette, single warm accent */
+  --color-canvas: #f6f5f3;     /* page background */
+  --color-surface: #ffffff;    /* cards, wells */
+  --color-ink: #0f0f0e;        /* primary text — near-black, slight warmth */
+  --color-ink-2: #2c2b28;      /* secondary headings */
+  --color-muted: #6a6965;      /* metadata, labels */
+  --color-line: #d8d6d1;       /* hairlines — solid, visible */
+  --color-line-2: #ebe9e4;     /* softer rule (zebra separator) */
+  --color-accent: #7a3b1e;     /* restrained bronze */
+  --color-accent-soft: #f1e7dc;/* tint wash */
+
+  /* Reduced rounding — professional software, not consumer UI */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+
+  /* Data-scale heatmap ramp (muted, no pastels) */
+  --heat-1: #a44a2e;   /* worst */
+  --heat-2: #c27a4c;
+  --heat-3: #c8a66a;
+  --heat-4: #8f9d5e;
+  --heat-5: #506b3f;   /* best */
 }
 
 @layer base {
@@ -28,57 +42,83 @@
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4 {
-    font-family: var(--font-display);
-    font-feature-settings: "ss01", "onum", "kern";
-    letter-spacing: -0.015em;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.012em;
   }
 }
 
-/* Editorial decorative rule — dashed hairline */
-.rule-dash {
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--color-line) 0 6px,
-    transparent 6px 12px
-  );
-  height: 1px;
+/* Mono labels — uppercase, tracked, small */
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  font-weight: 400;
 }
 
-/* Subtle grain overlay for atmosphere */
-.grain {
-  position: relative;
-}
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  border-radius: inherit;
+/* Tabular digits for all numeric display */
+.tabular {
+  font-feature-settings: "tnum", "lnum";
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Professional data table baseline */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums lining-nums;
 }
+.data-table thead th {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-line);
+  background: transparent;
+}
+.data-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-line-2);
+  vertical-align: middle;
+  color: var(--color-ink);
+}
+.data-table tbody tr:hover td {
+  background: var(--color-accent-soft);
+}
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--color-line);
-  border-radius: 9999px;
-}
+::-webkit-scrollbar-thumb { background: var(--color-line); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.tabular { font-feature-settings: "tnum", "lnum", "ss01"; }
-
 @keyframes rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 .rise {
-  animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Native inputs — minimal professional style */
+input[type="date"],
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  font-family: var(--font-sans);
 }

@@ -25,12 +25,12 @@ function PasswordInput({ value, onChange, placeholder, required }: {
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+        className="w-full px-3 py-2 pr-10 border border-line bg-surface outline-none focus:border-accent text-sm"
       />
       <button
         type="button"
         onClick={() => setShow(v => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors"
         tabIndex={-1}
       >
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -73,62 +73,61 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-5"
+        exit={{ opacity: 0, scale: 0.98 }}
+        className="bg-surface border border-line max-w-sm w-full shadow-xl"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><KeyRound size={18} /></div>
-            <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-4 bg-accent" aria-hidden />
+            <h3 className="text-[15px] font-medium text-ink">Change password</h3>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
-            <X size={20} />
+          <button onClick={onClose} className="p-1 text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors">
+            <X size={18} />
           </button>
         </div>
 
-        {success ? (
-          <div className="text-center py-6 space-y-3">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <KeyRound size={24} />
-            </div>
-            <p className="font-semibold text-gray-900">Password changed successfully!</p>
-            <button onClick={onClose} className="mt-2 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">
-              Done
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
-              <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
-              <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
-            </div>
-            <div className="flex space-x-3 pt-2">
-              <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 bg-canvas text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
-                Cancel
-              </button>
-              <button type="submit" disabled={loading}
-                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
-                {loading ? 'Saving...' : 'Change Password'}
+        <div className="p-5">
+          {success ? (
+            <div className="text-center py-4 space-y-4">
+              <p className="text-sm text-ink">Password changed successfully.</p>
+              <button onClick={onClose} className="px-5 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors">
+                Done
               </button>
             </div>
-          </form>
-        )}
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="px-3 py-2 bg-accent-soft border-l-2 border-accent text-accent text-[13px]">{error}</div>
+              )}
+              <div>
+                <label className="label block mb-1.5">Current password</label>
+                <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
+              </div>
+              <div>
+                <label className="label block mb-1.5">New password</label>
+                <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
+              </div>
+              <div>
+                <label className="label block mb-1.5">Confirm new password</label>
+                <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
+              </div>
+              <div className="flex gap-3 pt-2 border-t border-line -mx-5 px-5 pt-4">
+                <button type="button" onClick={onClose}
+                  className="flex-1 py-2 border border-line text-ink text-sm font-medium hover:bg-accent-soft/60 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={loading}
+                  className="flex-1 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors disabled:opacity-50">
+                  {loading ? 'Saving…' : 'Change password'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </motion.div>
     </div>
   );
@@ -183,76 +182,77 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-canvas flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <header className="md:hidden h-16 bg-surface border-b border-line flex items-center justify-between px-4 sticky top-0 z-40">
-        <span className="font-display text-xl text-ink tracking-tight">
-          <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
-        </span>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-accent-soft rounded-lg transition-colors">
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      <header className="md:hidden h-14 bg-surface border-b border-line flex items-center justify-between px-4 sticky top-0 z-40">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-accent" aria-hidden />
+          <span className="text-ink font-medium text-[15px] tracking-tight">Customer Survey System</span>
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-accent-soft transition-colors">
+          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </header>
 
       {/* Sidebar (Desktop) */}
       <aside className={cn(
-        "hidden md:flex bg-surface border-r border-line transition-all duration-300 flex-col sticky top-0 h-screen",
-        isSidebarOpen ? "w-64" : "w-20"
+        "hidden md:flex bg-surface border-r border-line transition-all duration-200 flex-col sticky top-0 h-screen",
+        isSidebarOpen ? "w-60" : "w-16"
       )}>
-        <div className="p-6 flex items-center justify-between">
+        <div className="h-14 px-5 flex items-center justify-between border-b border-line">
           {isSidebarOpen && (
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-display text-xl text-ink tracking-tight">
-              <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
-            </motion.span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 min-w-0">
+              <span className="w-1.5 h-4 bg-accent flex-shrink-0" aria-hidden />
+              <div className="min-w-0">
+                <div className="text-[13px] font-medium text-ink leading-tight truncate">Customer Survey</div>
+                <div className="label" style={{ fontSize: '9.5px' }}>Admin Console</div>
+              </div>
+            </motion.div>
           )}
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-accent-soft rounded-sm transition-colors">
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 text-muted hover:text-ink hover:bg-accent-soft transition-colors flex-shrink-0">
+            {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link key={item.path} to={item.path} className={cn(
-              "flex items-center p-3 rounded-sm transition-all group relative",
-              location.pathname === item.path
-                ? "bg-accent-soft text-ink"
-                : "text-muted hover:text-ink hover:bg-[color:rgba(181,71,24,0.04)]"
-            )}>
-              {location.pathname === item.path && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent" aria-hidden />
-              )}
-              <item.icon size={20} className={cn(
-                "transition-transform group-hover:scale-105 flex-shrink-0",
-                location.pathname === item.path ? "text-accent" : "text-muted"
-              )} />
-              {isSidebarOpen && (
-                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-display text-[15px]">
-                  {item.label}
-                </motion.span>
-              )}
-            </Link>
-          ))}
+        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link key={item.path} to={item.path} className={cn(
+                "flex items-center px-3 py-2 text-[13px] transition-colors relative",
+                active ? "bg-accent-soft text-ink font-medium" : "text-muted hover:text-ink hover:bg-accent-soft/60"
+              )}>
+                {active && <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-accent" aria-hidden />}
+                <item.icon size={16} className={cn("flex-shrink-0", active ? "text-accent" : "text-muted")} />
+                {isSidebarOpen && (
+                  <motion.span initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className="ml-3">
+                    {item.label}
+                  </motion.span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-line space-y-1">
+        <div className="border-t border-line p-2">
           {isSidebarOpen && user && (
-            <div className="px-3 py-3">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-muted font-medium">Signed in as</p>
-              <p className="mt-1 font-display text-ink truncate leading-tight">{user.full_name}</p>
-              <p className="text-xs text-muted italic capitalize">{user.role}</p>
+            <div className="px-3 py-3 border-b border-line mb-2">
+              <div className="label" style={{ fontSize: '9.5px' }}>Signed in as</div>
+              <div className="mt-1 text-[13px] text-ink truncate font-medium">{user.full_name}</div>
+              <div className="mt-0.5 label capitalize">{user.role}</div>
             </div>
           )}
           <button
             onClick={() => setShowChangePassword(true)}
-            className="flex items-center w-full p-3 text-muted hover:text-ink hover:bg-[color:rgba(181,71,24,0.04)] rounded-sm transition-all group"
+            className="flex items-center w-full px-3 py-2 text-[13px] text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors"
           >
-            <KeyRound size={18} className="flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-display text-[14px]">Change password</span>}
+            <KeyRound size={15} className="flex-shrink-0" />
+            {isSidebarOpen && <span className="ml-3">Change password</span>}
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center w-full p-3 text-muted hover:text-accent hover:bg-accent-soft rounded-sm transition-all group"
+            className="flex items-center w-full px-3 py-2 text-[13px] text-muted hover:text-accent hover:bg-accent-soft transition-colors"
           >
-            <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-display text-[14px]">Sign out</span>}
+            <LogOut size={15} className="flex-shrink-0" />
+            {isSidebarOpen && <span className="ml-3">Sign out</span>}
           </button>
         </div>
       </aside>
@@ -269,44 +269,47 @@ export default function Layout({ children }: LayoutProps) {
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-surface z-50 md:hidden shadow-2xl flex flex-col"
+              className="fixed inset-y-0 left-0 w-72 bg-surface z-50 md:hidden flex flex-col border-r border-line"
             >
-              <div className="p-6 flex items-center justify-between border-b border-line">
-                <span className="font-display text-xl text-ink tracking-tight">
-                  <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
-                </span>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-accent-soft rounded-sm"><X size={24} /></button>
+              <div className="h-14 px-5 flex items-center justify-between border-b border-line">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-accent" aria-hidden />
+                  <span className="text-[15px] font-medium text-ink">Customer Survey</span>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-muted hover:bg-accent-soft"><X size={20} /></button>
               </div>
-              <nav className="flex-1 p-4 space-y-1">
-                {navItems.map((item) => (
-                  <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center p-4 rounded-sm transition-all relative",
-                      location.pathname === item.path ? "bg-accent-soft text-ink" : "text-muted hover:text-ink"
-                    )}>
-                    {location.pathname === item.path && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent" aria-hidden />
-                    )}
-                    <item.icon size={22} className={cn("mr-4", location.pathname === item.path ? "text-accent" : "text-muted")} />
-                    <span className="font-display text-lg">{item.label}</span>
-                  </Link>
-                ))}
+              <nav className="flex-1 p-2">
+                {navItems.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center px-4 py-3 text-sm relative",
+                        active ? "bg-accent-soft text-ink font-medium" : "text-muted"
+                      )}>
+                      {active && <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-accent" aria-hidden />}
+                      <item.icon size={18} className={cn("mr-3", active ? "text-accent" : "text-muted")} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
               </nav>
-              <div className="p-6 border-t border-gray-100 space-y-3">
+              <div className="p-2 border-t border-line">
                 {user && (
-                  <div className="px-1">
-                    <p className="font-semibold text-gray-900">{user.full_name}</p>
-                    <p className="text-sm text-gray-400 capitalize">{user.role}</p>
+                  <div className="px-4 py-3 border-b border-line mb-2">
+                    <div className="label" style={{ fontSize: '9.5px' }}>Signed in as</div>
+                    <div className="mt-1 text-sm text-ink truncate font-medium">{user.full_name}</div>
+                    <div className="mt-0.5 label capitalize">{user.role}</div>
                   </div>
                 )}
                 <button
                   onClick={() => { setIsMobileMenuOpen(false); setShowChangePassword(true); }}
-                  className="flex items-center w-full p-4 text-indigo-600 bg-indigo-50 rounded-2xl font-bold"
+                  className="flex items-center w-full px-4 py-3 text-sm text-ink hover:bg-accent-soft/60"
                 >
-                  <KeyRound size={24} className="mr-4" /> Change Password
+                  <KeyRound size={16} className="mr-3 text-muted" /> Change password
                 </button>
-                <button onClick={handleLogout} className="flex items-center w-full p-4 text-red-600 bg-red-50 rounded-2xl font-bold">
-                  <LogOut size={24} className="mr-4" /> Logout
+                <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-sm text-accent hover:bg-accent-soft">
+                  <LogOut size={16} className="mr-3" /> Sign out
                 </button>
               </div>
             </motion.div>
@@ -316,43 +319,43 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="hidden md:flex h-16 bg-surface border-b border-line items-center justify-between px-8 sticky top-0 z-30">
-          <div className="flex items-baseline gap-3">
-            <span className="text-[10px] uppercase tracking-[0.28em] text-muted">§</span>
-            <h1 className="font-display text-lg text-ink tracking-tight">{pageTitle}</h1>
+        <header className="hidden md:flex h-14 bg-surface border-b border-line items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <span className="label" style={{ fontSize: '9.5px' }}>Section</span>
+            <span className="text-sm font-medium text-ink">{pageTitle}</span>
           </div>
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(v => !v)}
-              className="flex items-center space-x-3 hover:bg-[color:rgba(181,71,24,0.04)] rounded-sm px-3 py-2 transition-all"
+              className="flex items-center gap-3 hover:bg-accent-soft/60 px-3 py-1.5 transition-colors"
             >
               <div className="text-right">
-                <p className="font-display text-[14px] text-ink leading-tight">{user?.full_name || ''}</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-muted capitalize">{user?.role || ''}</p>
+                <div className="text-[13px] text-ink leading-tight font-medium">{user?.full_name || ''}</div>
+                <div className="label capitalize" style={{ fontSize: '9.5px' }}>{user?.role || ''}</div>
               </div>
-              <div className="w-9 h-9 rounded-full bg-accent-soft flex items-center justify-center text-accent font-display text-sm border border-accent/20">
+              <div className="w-8 h-8 bg-accent-soft flex items-center justify-center text-accent text-[11px] font-medium tabular border border-accent/25">
                 {initials}
               </div>
             </button>
             <AnimatePresence>
               {showUserMenu && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-sm border border-line shadow-lg overflow-hidden z-50"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  className="absolute right-0 top-full mt-1 w-52 bg-surface border border-line shadow-sm overflow-hidden z-50"
                 >
                   <button
                     onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
-                    className="flex items-center w-full px-4 py-3 text-sm text-ink hover:bg-accent-soft transition-colors font-display"
+                    className="flex items-center w-full px-4 py-2.5 text-[13px] text-ink hover:bg-accent-soft/60 transition-colors"
                   >
-                    <KeyRound size={16} className="mr-2 text-muted" /> Change password
+                    <KeyRound size={14} className="mr-2.5 text-muted" /> Change password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-3 text-sm text-accent hover:bg-accent-soft transition-colors border-t border-line font-display"
+                    className="flex items-center w-full px-4 py-2.5 text-[13px] text-accent hover:bg-accent-soft transition-colors border-t border-line"
                   >
-                    <LogOut size={16} className="mr-2" /> Sign out
+                    <LogOut size={14} className="mr-2.5" /> Sign out
                   </button>
                 </motion.div>
               )}
@@ -376,16 +379,20 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden h-16 bg-surface border-t border-line flex items-center justify-around px-2 sticky bottom-0 z-40">
-        {navItems.slice(0, 4).map((item) => (
-          <Link key={item.path} to={item.path} className={cn(
-            "flex flex-col items-center justify-center flex-1 py-1 transition-colors",
-            location.pathname === item.path ? "text-accent" : "text-muted"
-          )}>
-            <item.icon size={20} />
-            <span className="text-[10px] uppercase tracking-[0.2em] mt-1 font-display">{item.label}</span>
-          </Link>
-        ))}
+      <nav className="md:hidden h-14 bg-surface border-t border-line flex items-center justify-around sticky bottom-0 z-40">
+        {navItems.slice(0, 4).map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <Link key={item.path} to={item.path} className={cn(
+              "flex flex-col items-center justify-center flex-1 h-full transition-colors relative",
+              active ? "text-accent" : "text-muted"
+            )}>
+              {active && <span className="absolute top-0 left-4 right-4 h-0.5 bg-accent" aria-hidden />}
+              <item.icon size={18} />
+              <span className="text-[10px] mt-1">{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Change Password Modal */}
