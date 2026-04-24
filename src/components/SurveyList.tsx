@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, ExternalLink, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
+import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Survey } from '../types';
@@ -38,61 +38,101 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Distribute Survey</h3>
-            <p className="text-sm text-gray-500 mt-0.5">{survey.title}</p>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        className="bg-surface border border-line max-w-md w-full shadow-xl"
+      >
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-1 h-4 bg-accent flex-shrink-0" aria-hidden />
+            <div className="min-w-0">
+              <h3 className="text-[15px] font-medium text-ink truncate">Distribute survey</h3>
+              <p className="label mt-0.5 truncate">{survey.title}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+          <button onClick={onClose} className="p-1 text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors">
+            <X size={18} />
+          </button>
         </div>
 
-        {sent ? (
-          <div className="text-center py-8 space-y-3">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 size={24} />
-            </div>
-            <p className="font-semibold text-gray-900">Emails queued successfully!</p>
-            <p className="text-sm text-gray-500">Survey links are being sent to {emails.length} recipients.</p>
-            <button onClick={onClose} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">Done</button>
-          </div>
-        ) : (
-          <>
-            {error && <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Add Email Addresses</label>
-              <div className="flex gap-2">
-                <input type="text" value={emailInput} onChange={e => setEmailInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addEmails()}
-                  placeholder="email@example.com, another@example.com"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button onClick={addEmails} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700">Add</button>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Separate multiple emails with commas or press Enter</p>
-            </div>
-
-            {emails.length > 0 && (
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {emails.map(email => (
-                  <div key={email} className="flex items-center justify-between px-3 py-1.5 bg-gray-50 rounded-lg text-sm">
-                    <span className="text-gray-700">{email}</span>
-                    <button onClick={() => setEmails(emails.filter(e => e !== email))} className="text-gray-400 hover:text-red-500 ml-2"><X size={14} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">Cancel</button>
-              <button onClick={handleSend} disabled={sending || emails.length === 0}
-                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
-                {sending ? 'Sending...' : `Send to ${emails.length} recipient${emails.length !== 1 ? 's' : ''}`}
+        <div className="p-5">
+          {sent ? (
+            <div className="text-center py-4 space-y-4">
+              <p className="text-sm text-ink">Emails queued successfully.</p>
+              <p className="label">Sending to {emails.length} recipient{emails.length !== 1 ? 's' : ''}</p>
+              <button onClick={onClose} className="px-5 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors">
+                Done
               </button>
             </div>
-          </>
-        )}
+          ) : (
+            <div className="space-y-4">
+              {error && (
+                <div className="px-3 py-2 bg-accent-soft border-l-2 border-negative text-negative text-[13px]">{error}</div>
+              )}
+              <div>
+                <label className="label block mb-1.5">Add email addresses</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={emailInput}
+                    onChange={e => setEmailInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addEmails();
+                      }
+                    }}
+                    placeholder="email@example.com, another@example.com"
+                    className="flex-1 px-3 py-2 border border-line bg-surface outline-none focus:border-accent text-sm"
+                  />
+                  <button
+                    onClick={addEmails}
+                    className="px-4 py-2 bg-accent hover:bg-accent-2 text-white text-sm font-medium transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+                <p className="label mt-1.5">Separate with commas or press Enter</p>
+              </div>
+
+              {emails.length > 0 && (
+                <div className="max-h-40 overflow-y-auto border border-line">
+                  {emails.map(email => (
+                    <div key={email} className="flex items-center justify-between px-3 py-1.5 border-b border-line-2 last:border-b-0 text-sm">
+                      <span className="text-ink truncate">{email}</span>
+                      <button
+                        onClick={() => setEmails(emails.filter(e => e !== email))}
+                        className="p-1 text-muted hover:text-negative hover:bg-red-50/50 transition-colors flex-shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2 border-t border-line -mx-5 px-5 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-2 border border-line text-ink text-sm font-medium hover:bg-accent-soft/60 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSend}
+                  disabled={sending || emails.length === 0}
+                  className="flex-1 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors disabled:opacity-50"
+                >
+                  {sending ? 'Sending…' : `Send to ${emails.length} recipient${emails.length !== 1 ? 's' : ''}`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </motion.div>
     </div>
   );
@@ -137,15 +177,15 @@ export default function SurveyList() {
     const svg = document.getElementById(`qr-code-${id}`);
     if (!svg) return;
     const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
       ctx?.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
+      const pngFile = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
       downloadLink.download = `QR-${title.replace(/\s+/g, '-').toLowerCase()}.png`;
       downloadLink.href = `${pngFile}`;
       downloadLink.click();
@@ -192,190 +232,170 @@ export default function SurveyList() {
   const getStatusBadge = (status: Survey['status']) => {
     switch (status) {
       case 'published':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-            <CheckCircle2 size={12} className="mr-1" /> Published
-          </span>
-        );
+        return <span className="label px-2 py-0.5 bg-accent text-canvas">Published</span>;
       case 'draft':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-            <Clock size={12} className="mr-1" /> Draft
-          </span>
-        );
+        return <span className="label px-2 py-0.5 border border-line text-muted">Draft</span>;
       case 'archived':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-100">
-            <Archive size={12} className="mr-1" /> Archived
-          </span>
-        );
+        return <span className="label text-muted">Archived</span>;
     }
   };
 
+  const actionIcon = 'p-1.5 text-muted hover:text-accent hover:bg-accent-soft transition-colors';
+  const destructiveIcon = 'p-1.5 text-muted hover:text-negative hover:bg-red-50/50 transition-colors';
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Controls row: search + filters + Create */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-muted" size={16} />
           <input
             type="text"
-            placeholder="Search by title, description, or creator..."
+            placeholder="Search by title, description, or creator…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+            className="w-full pl-6 pr-2 py-2 bg-transparent border-b border-line text-sm text-ink placeholder:text-muted outline-none focus:border-accent transition-colors"
           />
         </div>
-        <div className="flex items-center space-x-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
-          >
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-            {showArchived && <option value="archived">Archived</option>}
-          </select>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-center gap-2">
+            <span className="label">Status</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent border-b border-line px-1 py-0.5 text-sm text-ink outline-none focus:border-accent cursor-pointer"
+            >
+              <option value="all">All</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              {showArchived && <option value="archived">Archived</option>}
+            </select>
+          </div>
           <button
             onClick={() => {
               setShowArchived(v => !v);
               if (statusFilter === 'archived') setStatusFilter('all');
             }}
-            className={cn(
-              "flex items-center px-3 py-2 rounded-xl text-sm font-medium border transition-all",
-              showArchived
-                ? "bg-gray-100 text-gray-700 border-gray-300"
-                : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-            )}
-            title={showArchived ? "Hide archived surveys" : "Show archived surveys"}
+            className="flex items-center gap-1.5 label hover:text-accent transition-colors"
+            title={showArchived ? 'Hide archived surveys' : 'Show archived surveys'}
           >
-            {showArchived ? <EyeOff size={16} className="mr-1.5" /> : <Archive size={16} className="mr-1.5" />}
-            {showArchived ? 'Hide Archived' : `Archived${archivedCount > 0 ? ` (${archivedCount})` : ''}`}
+            {showArchived ? <EyeOff size={13} /> : <Archive size={13} />}
+            {showArchived ? 'Hide archived' : `Archived${archivedCount > 0 ? ` (${archivedCount})` : ''}`}
           </button>
           <Link
             to="/surveys/new"
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
+            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-2 text-white text-sm font-medium transition-colors"
           >
-            <Plus size={18} className="mr-2" /> Create Survey
+            <Plus size={16} /> Create Survey
           </Link>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-surface border border-line overflow-hidden">
         {/* Desktop Table View */}
         <div className="hidden md:block">
-          <table className="w-full text-left border-collapse">
+          <table className="data-table">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Survey Details</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Questions</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created At</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              <tr>
+                <th>Survey Details</th>
+                <th>Status</th>
+                <th>Questions</th>
+                <th>Created At</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading surveys...</td>
+                  <td colSpan={5} className="py-12 text-center">
+                    <span className="label">Loading surveys…</span>
+                  </td>
                 </tr>
               ) : filteredSurveys.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <AlertCircle size={48} className="text-gray-200 mb-4" />
-                      <p className="text-gray-500 font-medium">No surveys found</p>
+                  <td colSpan={5} className="py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="label">No surveys found</p>
                       {searchQuery ? (
-                        <button onClick={() => setSearchQuery('')} className="text-indigo-600 text-sm mt-2 hover:underline">Clear search</button>
+                        <button onClick={() => setSearchQuery('')} className="label hover:text-accent transition-colors">
+                          Clear search
+                        </button>
                       ) : (
-                        <Link to="/surveys/new" className="text-indigo-600 text-sm mt-2 hover:underline">Create your first survey</Link>
+                        <Link to="/surveys/new" className="label hover:text-accent transition-colors">
+                          Create your first survey
+                        </Link>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredSurveys.map((survey) => (
-                  <tr key={survey.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{survey.title}</p>
-                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{survey.description}</p>
-                        {survey.createdByName && (
-                          <p className="text-xs text-gray-400 mt-0.5">By {survey.createdByName}</p>
-                        )}
-                      </div>
+                  <tr key={survey.id}>
+                    <td>
+                      <p className="text-sm font-medium text-ink">{survey.title}</p>
+                      <p className="text-xs text-muted line-clamp-1 mt-0.5">{survey.description}</p>
+                      {survey.createdByName && (
+                        <p className="label mt-1">By {survey.createdByName}</p>
+                      )}
                     </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(survey.status)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 font-medium">{survey.questions.length} questions</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-500">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button 
+                    <td>{getStatusBadge(survey.status)}</td>
+                    <td className="tabular text-ink">{survey.questions.length}</td>
+                    <td className="tabular text-muted">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
                           onClick={() => setPreviewSurvey(survey)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className={actionIcon}
                           title="Preview Survey"
                         >
-                          <Eye size={18} />
+                          <Eye size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => copyLink(survey.id)}
                           className={cn(
-                            "p-2 rounded-lg transition-all",
-                            copiedId === survey.id ? "text-emerald-600 bg-emerald-50" : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"
+                            'p-1.5 transition-colors',
+                            copiedId === survey.id
+                              ? 'text-accent bg-accent-soft'
+                              : 'text-muted hover:text-accent hover:bg-accent-soft'
                           )}
                           title="Copy Survey Link"
                         >
-                          <Copy size={18} />
+                          {copiedId === survey.id ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                         </button>
-                        <a 
-                          href={`/s/${survey.id}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="Open Customer View"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                        <button 
+                        <button
                           onClick={() => setQrSurvey(survey)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className={actionIcon}
                           title="View QR Code"
                         >
-                          <QrCode size={18} />
+                          <QrCode size={16} />
                         </button>
                         <Link
                           to={`/analytics/${survey.id}`}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className={actionIcon}
                           title="View Analytics"
                         >
-                          <BarChart3 size={18} />
+                          <BarChart3 size={16} />
                         </Link>
                         {canEdit && (
                           <>
-                            <button onClick={() => duplicateSurvey(survey)} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all" title="Duplicate">
-                              <CopyPlus size={18} />
+                            <button onClick={() => duplicateSurvey(survey)} className={actionIcon} title="Duplicate">
+                              <CopyPlus size={16} />
                             </button>
                             {survey.status === 'published' && (
                               <>
-                                <button onClick={() => setDistributeSurvey(survey)} className="p-2 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-lg transition-all" title="Distribute via Email">
-                                  <Mail size={18} />
+                                <button onClick={() => setDistributeSurvey(survey)} className={actionIcon} title="Distribute via Email">
+                                  <Mail size={16} />
                                 </button>
-                                <button onClick={() => sendReminders(survey)} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all" title="Send Reminders">
-                                  <Bell size={18} />
+                                <button onClick={() => sendReminders(survey)} className={actionIcon} title="Send Reminders">
+                                  <Bell size={16} />
                                 </button>
                               </>
                             )}
-                            <Link to={`/surveys/edit/${survey.id}`} className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Edit">
-                              <Edit2 size={18} />
+                            <Link to={`/surveys/edit/${survey.id}`} className={actionIcon} title="Edit">
+                              <Edit2 size={16} />
                             </Link>
-                            <button onClick={() => setSurveyToDelete(survey)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete">
-                              <Trash2 size={18} />
+                            <button onClick={() => setSurveyToDelete(survey)} className={destructiveIcon} title="Delete">
+                              <Trash2 size={16} />
                             </button>
                           </>
                         )}
@@ -389,49 +409,51 @@ export default function SurveyList() {
         </div>
 
         {/* Mobile Card View */}
-        <div className="md:hidden divide-y divide-gray-100">
+        <div className="md:hidden divide-y divide-line">
           {loading ? (
-            <div className="p-6 text-center text-gray-500">Loading surveys...</div>
+            <div className="p-6 text-center">
+              <span className="label">Loading surveys…</span>
+            </div>
           ) : filteredSurveys.length === 0 ? (
             <div className="p-12 text-center">
-              <AlertCircle size={48} className="text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">No surveys found</p>
+              <p className="label">No surveys found</p>
             </div>
           ) : (
             filteredSurveys.map((survey) => (
-              <div key={survey.id} className="p-4 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-bold text-gray-900">{survey.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</p>
+              <div key={survey.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="font-medium text-ink truncate">{survey.title}</h4>
+                    <p className="label mt-1">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</p>
                   </div>
                   {getStatusBadge(survey.status)}
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2">{survey.description}</p>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs font-medium text-gray-500">{survey.questions.length} questions</span>
-                    <div className="flex items-center space-x-1">
-                      <button onClick={() => setPreviewSurvey(survey)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                        <Eye size={18} />
-                      </button>
-                      <button onClick={() => copyLink(survey.id)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <Copy size={18} />
+                <p className="text-sm text-muted line-clamp-2">{survey.description}</p>
+                <div className="flex items-center justify-between pt-2 border-t border-line-2">
+                  <span className="label tabular">{survey.questions.length} questions</span>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setPreviewSurvey(survey)} className={actionIcon} title="Preview">
+                      <Eye size={16} />
                     </button>
-                    <a href={`/s/${survey.id}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <ExternalLink size={18} />
-                    </a>
-                    <button onClick={() => setQrSurvey(survey)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <QrCode size={18} />
+                    <button onClick={() => copyLink(survey.id)} className={actionIcon} title="Copy link">
+                      {copiedId === survey.id ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                     </button>
-                    <Link to={`/analytics/${survey.id}`} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <BarChart3 size={18} />
+                    <button onClick={() => setQrSurvey(survey)} className={actionIcon} title="QR code">
+                      <QrCode size={16} />
+                    </button>
+                    <Link to={`/analytics/${survey.id}`} className={actionIcon} title="Analytics">
+                      <BarChart3 size={16} />
                     </Link>
-                    <Link to={`/surveys/edit/${survey.id}`} className="p-2 text-gray-400 hover:text-amber-600 rounded-lg">
-                      <Edit2 size={18} />
-                    </Link>
-                    <button onClick={() => setSurveyToDelete(survey)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg">
-                      <Trash2 size={18} />
-                    </button>
+                    {canEdit && (
+                      <>
+                        <Link to={`/surveys/edit/${survey.id}`} className={actionIcon} title="Edit">
+                          <Edit2 size={16} />
+                        </Link>
+                        <button onClick={() => setSurveyToDelete(survey)} className={destructiveIcon} title="Delete">
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -440,74 +462,81 @@ export default function SurveyList() {
         </div>
       </div>
 
+      {/* Delete confirmation modal */}
       <AnimatePresence>
         {surveyToDelete && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-6"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="bg-surface border border-line max-w-sm w-full shadow-xl"
             >
-              <div className="text-center space-y-2">
-                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trash2 size={24} />
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1 h-4 bg-accent" aria-hidden />
+                  <h3 className="text-[15px] font-medium text-ink">Delete survey</h3>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Delete Survey?</h3>
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete <span className="font-semibold text-gray-900">"{surveyToDelete.title}"</span>? This action cannot be undone.
-                </p>
+                <button
+                  onClick={() => !isDeleting && setSurveyToDelete(null)}
+                  className="p-1 text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors"
+                >
+                  <X size={18} />
+                </button>
               </div>
-
-              <div className="flex flex-col space-y-3">
-                <button
-                  onClick={deleteSurvey}
-                  disabled={isDeleting}
-                  className="w-full py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? 'Deleting...' : 'Yes, Delete Survey'}
-                </button>
-                <button
-                  onClick={() => setSurveyToDelete(null)}
-                  disabled={isDeleting}
-                  className="w-full py-3 bg-gray-50 text-gray-700 rounded-xl font-bold hover:bg-gray-100 transition-all disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-ink">
+                  Are you sure you want to delete <span className="font-medium">"{surveyToDelete.title}"</span>?
+                </p>
+                <p className="label">This action cannot be undone.</p>
+                <div className="flex gap-3 pt-2 border-t border-line -mx-5 px-5 pt-4">
+                  <button
+                    onClick={() => setSurveyToDelete(null)}
+                    disabled={isDeleting}
+                    className="flex-1 py-2 border border-line text-ink text-sm font-medium hover:bg-accent-soft/60 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={deleteSurvey}
+                    disabled={isDeleting}
+                    className="flex-1 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors disabled:opacity-50"
+                  >
+                    {isDeleting ? 'Deleting…' : 'Delete'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
+      {/* Preview modal */}
       <AnimatePresence>
         {previewSurvey && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl relative my-8"
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="bg-surface border border-line w-full max-w-4xl shadow-xl relative my-8"
             >
-              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md p-4 border-b border-gray-100 flex items-center justify-between rounded-t-3xl">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                    <Eye size={20} />
-                  </div>
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between sticky top-0 bg-surface z-10">
+                <div className="flex items-center gap-2">
+                  <span className="w-1 h-4 bg-accent" aria-hidden />
                   <div>
-                    <h3 className="font-bold text-gray-900">Survey Preview</h3>
-                    <p className="text-xs text-gray-500">Viewing as a customer</p>
+                    <h3 className="text-[15px] font-medium text-ink">Survey preview</h3>
+                    <p className="label mt-0.5">Viewing as a customer</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setPreviewSurvey(null)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                  className="p-1 text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors"
                 >
-                  <X size={24} />
+                  <X size={18} />
                 </button>
               </div>
-              
-              <div className="p-0 max-h-[80vh] overflow-y-auto bg-gray-50">
+              <div className="max-h-[80vh] overflow-y-auto bg-canvas">
                 <SurveyResponse previewSurvey={previewSurvey} isPreview={true} />
               </div>
             </motion.div>
@@ -515,6 +544,7 @@ export default function SurveyList() {
         )}
       </AnimatePresence>
 
+      {/* Distribute modal */}
       <AnimatePresence>
         {distributeSurvey && (
           <DistributeModal
@@ -524,58 +554,65 @@ export default function SurveyList() {
         )}
       </AnimatePresence>
 
+      {/* QR code modal */}
       <AnimatePresence>
         {qrSurvey && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="bg-surface border border-line max-w-sm w-full shadow-xl"
             >
-              <button 
-                onClick={() => setQrSurvey(null)}
-                className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-              >
-                <X size={20} />
-              </button>
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-1 h-4 bg-accent flex-shrink-0" aria-hidden />
+                  <div className="min-w-0">
+                    <h3 className="text-[15px] font-medium text-ink truncate">{qrSurvey.title}</h3>
+                    <p className="label mt-0.5">Scan to take the survey</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setQrSurvey(null)}
+                  className="p-1 text-muted hover:text-ink hover:bg-accent-soft/60 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
-              <div className="text-center space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{qrSurvey.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">Scan to take the survey</p>
+              <div className="p-5 space-y-5">
+                <div className="flex justify-center">
+                  <div className="p-3 bg-surface border border-line">
+                    <QRCodeSVG
+                      id={`qr-code-${qrSurvey.id}`}
+                      value={`${window.location.origin}/s/${qrSurvey.id}`}
+                      size={200}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 inline-block mx-auto">
-                  <QRCodeSVG
-                    id={`qr-code-${qrSurvey.id}`}
-                    value={`${window.location.origin}/s/${qrSurvey.id}`}
-                    size={200}
-                    level="H"
-                    includeMargin={true}
-                  />
-                </div>
-
-                <div className="flex flex-col space-y-3">
-                  <button
-                    onClick={() => downloadQR(qrSurvey.id, qrSurvey.title)}
-                    className="flex items-center justify-center w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-                  >
-                    <Download size={18} className="mr-2" /> Download QR Code
-                  </button>
+                <div className="flex gap-3 pt-2 border-t border-line -mx-5 px-5 pt-4">
                   <button
                     onClick={() => copyLink(qrSurvey.id)}
-                    className="flex items-center justify-center w-full py-3 bg-gray-50 text-gray-700 rounded-xl font-bold hover:bg-gray-100 transition-all"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 border border-line text-ink text-sm font-medium hover:bg-accent-soft/60 transition-colors"
                   >
                     {copiedId === qrSurvey.id ? (
-                      <span className="text-emerald-600 flex items-center">
-                        <CheckCircle2 size={18} className="mr-2" /> Copied!
-                      </span>
+                      <>
+                        <CheckCircle2 size={16} /> Copied
+                      </>
                     ) : (
-                      <span className="flex items-center">
-                        <Copy size={18} className="mr-2" /> Copy Link
-                      </span>
+                      <>
+                        <Copy size={16} /> Copy link
+                      </>
                     )}
+                  </button>
+                  <button
+                    onClick={() => downloadQR(qrSurvey.id, qrSurvey.title)}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 bg-ink text-canvas text-sm font-medium hover:bg-ink-2 transition-colors"
+                  >
+                    <Download size={16} /> Download
                   </button>
                 </div>
               </div>

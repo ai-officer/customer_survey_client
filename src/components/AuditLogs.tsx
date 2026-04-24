@@ -1,28 +1,44 @@
 import React from 'react';
-import { Shield, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { AuditLog } from '../types';
 import { api } from '../lib/api';
+import { FilterBar, DateRangeControl, DateRange } from './ui/FilterBar';
 
-const ACTION_COLORS: Record<string, string> = {
-  LOGIN: 'bg-blue-50 text-blue-700',
-  REGISTER: 'bg-indigo-50 text-indigo-700',
-  CREATE_SURVEY: 'bg-emerald-50 text-emerald-700',
-  UPDATE_SURVEY: 'bg-amber-50 text-amber-700',
-  DELETE_SURVEY: 'bg-red-50 text-red-700',
-  DUPLICATE_SURVEY: 'bg-purple-50 text-purple-700',
-  DISTRIBUTE_SURVEY: 'bg-cyan-50 text-cyan-700',
-  REMIND_NON_RESPONDENTS: 'bg-orange-50 text-orange-700',
-  SUBMIT_RESPONSE: 'bg-teal-50 text-teal-700',
-  CREATE_USER: 'bg-green-50 text-green-700',
-  UPDATE_USER: 'bg-yellow-50 text-yellow-700',
-  DEACTIVATE_USER: 'bg-red-50 text-red-700',
+type ActionTier = 'destructive' | 'write' | 'other';
+
+const TIER_STYLE: Record<ActionTier, { text: string; marker: string | null }> = {
+  destructive: { text: 'text-negative', marker: 'bg-negative' },
+  write:       { text: 'text-ink',      marker: 'bg-accent'   },
+  other:       { text: 'text-muted',    marker: null          },
 };
+
+function tierFor(action: string): ActionTier {
+  if (/^(DELETE|DEACTIVATE)_/.test(action)) return 'destructive';
+  if (/^(CREATE|UPDATE|SUBMIT)_/.test(action)) return 'write';
+  return 'other';
+}
+
+function ActionBadge({ action }: { action: string }) {
+  const { text, marker } = TIER_STYLE[tierFor(action)];
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.08em] ${text}`}>
+      {marker && <span className={`w-1 h-3 ${marker}`} aria-hidden />}
+      {action}
+    </span>
+  );
+}
 
 export default function AuditLogs() {
   const [logs, setLogs] = React.useState<AuditLog[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState('');
+  const [actionFilter, setActionFilter] = React.useState('');
+  const [resourceFilter, setResourceFilter] = React.useState('');
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    startDate: '',
+    endDate: '',
+    preset: 'all',
+  });
 
   React.useEffect(() => {
     api.get<AuditLog[]>('/audit-logs?limit=200')
@@ -30,73 +46,179 @@ export default function AuditLogs() {
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = logs.filter(log =>
-    !search ||
-    log.action.toLowerCase().includes(search.toLowerCase()) ||
-    (log.user_email || '').toLowerCase().includes(search.toLowerCase()) ||
-    (log.detail || '').toLowerCase().includes(search.toLowerCase())
+  const actionOptions = React.useMemo(
+    () => Array.from(new Set(logs.map((l) => l.action))).sort(),
+    [logs],
+  );
+  const resourceOptions = React.useMemo(
+    () => Array.from(new Set(logs.map((l) => l.resource).filter(Boolean))).sort(),
+    [logs],
   );
 
+  const filtered = logs.filter((log) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const match =
+        log.action.toLowerCase().includes(q) ||
+        (log.user_email || '').toLowerCase().includes(q) ||
+        (log.detail || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    if (actionFilter && log.action !== actionFilter) return false;
+    if (resourceFilter && log.resource !== resourceFilter) return false;
+    if (dateRange.startDate) {
+      const start = new Date(`${dateRange.startDate}T00:00:00`).getTime();
+      if (new Date(log.timestamp).getTime() < start) return false;
+    }
+    if (dateRange.endDate) {
+      const end = new Date(`${dateRange.endDate}T23:59:59.999`).getTime();
+      if (new Date(log.timestamp).getTime() > end) return false;
+    }
+    return true;
+  });
+
+  const hasFilter =
+    !!search ||
+    !!actionFilter ||
+    !!resourceFilter ||
+    dateRange.preset !== 'all' ||
+    !!dateRange.startDate ||
+    !!dateRange.endDate;
+
+  const clearFilters = () => {
+    setSearch('');
+    setActionFilter('');
+    setResourceFilter('');
+    setDateRange({ startDate: '', endDate: '', preset: 'all' });
+  };
+
+  const today = format(new Date(), 'MMM d, yyyy').toUpperCase();
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-12">
+      {/* Title strip */}
+      <div className="flex items-end justify-between gap-6 border-b border-line pb-4 rise">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Audit Logs</h2>
-          <p className="text-sm text-gray-500">Complete trail of all user actions in the system</p>
+          <div className="label" style={{ fontSize: '10px' }}>
+            System Audit · Last Updated {today}
+          </div>
+          <h1 className="mt-2 text-2xl font-medium text-ink tracking-tight">
+            Audit Logs
+          </h1>
         </div>
-        <div className="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-100">
-          <Shield size={14} />
-          <span>Admin Only</span>
+        <div className="label hidden sm:block">
+          Admin Only
         </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-        <input
-          type="text"
-          placeholder="Search by action, user, or detail..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
-        />
+      {/* Filter bar */}
+      <div className="rise" style={{ animationDelay: '60ms' }}>
+        <FilterBar
+          onReset={hasFilter ? clearFilters : undefined}
+          loading={loading}
+        >
+          <DateRangeControl value={dateRange} onChange={setDateRange} />
+          <div className="flex items-center gap-2">
+            <span className="label">Search</span>
+            <input
+              type="text"
+              placeholder="Action, user, or detail"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent border-b border-line px-1 py-0.5 text-ink outline-none focus:border-accent placeholder:text-muted min-w-[180px]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="label">Action</span>
+            <select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="bg-transparent border-b border-line px-1 py-0.5 text-ink outline-none focus:border-accent cursor-pointer"
+            >
+              <option value="">Any</option>
+              {actionOptions.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="label">Resource</span>
+            <select
+              value={resourceFilter}
+              onChange={(e) => setResourceFilter(e.target.value)}
+              className="bg-transparent border-b border-line px-1 py-0.5 text-ink outline-none focus:border-accent cursor-pointer capitalize"
+            >
+              <option value="">Any</option>
+              {resourceOptions.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+        </FilterBar>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Timestamp</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Resource</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">Loading audit logs...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No logs found</td></tr>
-            ) : filtered.map(log => (
-              <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-3 text-xs text-gray-500 whitespace-nowrap">
-                  {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
-                </td>
-                <td className="px-6 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACTION_COLORS[log.action] || 'bg-gray-50 text-gray-600'}`}>
-                    {log.action}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm text-gray-600">{log.user_email || <span className="text-gray-300 italic">anonymous</span>}</td>
-                <td className="px-6 py-3 text-sm text-gray-600 capitalize">{log.resource}</td>
-                <td className="px-6 py-3 text-sm text-gray-500 max-w-xs truncate">{log.detail || '—'}</td>
-                <td className="px-6 py-3 text-xs text-gray-400 font-mono">{log.ip_address || '—'}</td>
+      {/* Audit table */}
+      <section className="bg-surface border border-line rise" style={{ animationDelay: '120ms' }}>
+        <header className="px-6 py-4 border-b border-line flex items-baseline justify-between">
+          <div className="flex items-center gap-3">
+            <span className="label tabular" style={{ fontSize: '10px' }}>Fig. 01</span>
+            <h2 className="text-sm font-medium text-ink">Activity Trail</h2>
+          </div>
+          <span className="label tabular">
+            {loading ? 'Loading…' : `${filtered.length} of ${logs.length}`}
+          </span>
+        </header>
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: '170px' }}>Timestamp</th>
+                <th style={{ width: '220px' }}>Action</th>
+                <th>User</th>
+                <th style={{ width: '120px' }}>Resource</th>
+                <th>Detail</th>
+                <th style={{ width: '120px' }}>IP</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center text-muted py-12">
+                    Loading audit logs…
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center text-muted py-12">
+                    No logs found
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((log) => (
+                  <tr key={log.id}>
+                    <td className="tabular text-muted text-[12px] whitespace-nowrap">
+                      {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
+                    </td>
+                    <td>
+                      <ActionBadge action={log.action} />
+                    </td>
+                    <td className="text-ink text-sm">
+                      {log.user_email || <span className="text-muted italic">anonymous</span>}
+                    </td>
+                    <td className="text-ink text-sm capitalize">{log.resource || '—'}</td>
+                    <td className="text-ink text-sm max-w-[320px] truncate" title={log.detail || ''}>
+                      {log.detail || '—'}
+                    </td>
+                    <td className="font-mono text-[11px] text-muted whitespace-nowrap">
+                      {log.ip_address || '—'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

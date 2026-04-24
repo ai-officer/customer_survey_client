@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Edit2, Check, X, Building2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Department } from '../types';
 import { api } from '../lib/api';
@@ -70,46 +70,61 @@ export default function DepartmentManagement() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-          <Building2 size={20} />
-        </div>
+    <div className="max-w-2xl mx-auto space-y-6 pb-12">
+      {/* Title strip */}
+      <div className="flex items-end justify-between gap-6 border-b border-line pb-4 rise">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">GCGC Departments</h2>
-          <p className="text-sm text-gray-500">Manage the department list available when creating surveys.</p>
+          <div className="label" style={{ fontSize: '10px' }}>
+            Configuration · GCGC Departments
+          </div>
+          <h1 className="mt-2 text-2xl font-medium text-ink tracking-tight">
+            Departments
+          </h1>
+          <p className="mt-2 text-muted text-sm">
+            Manage the department list available when creating surveys.
+          </p>
+        </div>
+        <div className="label hidden sm:block">
+          {departments.length} {departments.length === 1 ? 'entry' : 'entries'}
         </div>
       </div>
 
-      <form onSubmit={addDepartment} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-2">
+      {/* Add-department form */}
+      <form
+        onSubmit={addDepartment}
+        className="rise bg-surface border border-line p-4 flex gap-2"
+        style={{ animationDelay: '60ms' }}
+      >
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Add a new department (e.g. Legal)"
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 border border-line bg-surface focus:border-accent outline-none px-3 py-2 text-sm text-ink"
         />
         <button
           type="submit"
           disabled={submitting || !newName.trim()}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+          className="bg-accent hover:bg-accent-2 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 flex items-center gap-1"
         >
           <Plus size={16} /> Add
         </button>
       </form>
 
+      {/* Error */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+        <div className="bg-red-50 border-l-2 border-negative text-negative px-3 py-2 text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+      {/* Department list */}
+      <div className="rise bg-surface border border-line" style={{ animationDelay: '120ms' }}>
         {loading ? (
-          <div className="p-6 text-center text-gray-400 text-sm">Loading departments…</div>
+          <div className="label py-10 text-center">Loading departments…</div>
         ) : departments.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm italic">
-            No departments yet. Add your first one above.
+          <div className="label py-10 text-center">
+            No departments yet — add your first one above.
           </div>
         ) : (
           departments.map((d) => (
@@ -117,7 +132,7 @@ export default function DepartmentManagement() {
               key={d.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center justify-between gap-3 px-4 py-3"
+              className="flex items-center justify-between gap-3 px-4 py-3 border-b border-line last:border-b-0 hover:bg-accent-soft/40 transition-colors"
             >
               {editingId === d.id ? (
                 <>
@@ -125,24 +140,40 @@ export default function DepartmentManagement() {
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 border border-line bg-surface focus:border-accent outline-none px-3 py-1.5 text-sm text-ink"
                     autoFocus
                   />
-                  <button onClick={() => saveEdit(d.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg">
+                  <button
+                    onClick={() => saveEdit(d.id)}
+                    className="p-2 text-muted hover:text-positive transition-colors"
+                    aria-label="Save"
+                  >
                     <Check size={16} />
                   </button>
-                  <button onClick={() => setEditingId(null)} className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg">
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-2 text-muted hover:text-accent transition-colors"
+                    aria-label="Cancel"
+                  >
                     <X size={16} />
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="text-sm text-gray-900 font-medium">{d.name}</span>
+                  <span className="text-sm text-ink font-medium">{d.name}</span>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => startEdit(d)} className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg">
+                    <button
+                      onClick={() => startEdit(d)}
+                      className="p-2 text-muted hover:text-accent transition-colors"
+                      aria-label="Edit"
+                    >
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => removeDepartment(d.id, d.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                    <button
+                      onClick={() => removeDepartment(d.id, d.name)}
+                      className="p-2 text-muted hover:text-negative transition-colors"
+                      aria-label="Delete"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>

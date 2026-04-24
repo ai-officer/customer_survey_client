@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -31,38 +31,40 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
-            <ClipboardCheck size={32} className="text-white" />
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="bg-surface border border-line p-8 shadow-sm rise">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="w-1.5 h-5 bg-accent" aria-hidden />
+            <span className="text-ink font-medium text-lg tracking-tight">Customer Survey System</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Survey System</h1>
-          <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
-        </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+          <div className="mb-6">
+            <div className="label" style={{ fontSize: '9.5px' }}>Authentication</div>
+            <h1 className="mt-1 text-[15px] font-medium text-ink">Sign in to your account</h1>
+          </div>
+
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+            <div className="mb-4 bg-red-50 border-l-2 border-negative text-negative px-3 py-2 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="label block mb-1.5">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                className="w-full border border-line bg-surface focus:border-accent outline-none px-3 py-2 text-sm rounded-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="label block mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -70,14 +72,15 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all pr-10"
+                  className="w-full border border-line bg-surface focus:border-accent outline-none px-3 py-2 pr-10 text-sm rounded-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors"
+                  tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -85,14 +88,14 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-accent hover:bg-accent-2 text-white py-2.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-400">
+        <p className="label text-center">
           Global Officium Limited Inc. — Customer Survey System
         </p>
       </div>

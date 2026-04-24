@@ -1,22 +1,58 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar, UserRound, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Download, UserRound, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { api } from '../lib/api';
 import { Survey, SurveyResponse } from '../types';
 import EngagementPanel from './EngagementPanel';
+import { FilterBar, DateRangeControl, DateRange } from './ui/FilterBar';
 
-const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#1d4ed8', '#0f766e', '#d97706', '#b91c1c', '#7c3aed'];
+
+type KpiStat = {
+  index: string;
+  label: string;
+  value: React.ReactNode;
+  caption?: string;
+};
+
+function KpiCell({ stat }: { stat: KpiStat }) {
+  return (
+    <div className="flex flex-col py-5 px-6 border-r border-line last:border-r-0">
+      <div className="flex items-center gap-2">
+        <span className="label tabular" style={{ fontSize: '10px' }}>{stat.index}</span>
+        <span className="label">{stat.label}</span>
+      </div>
+      <div className="mt-3 text-[32px] font-medium tabular leading-none text-ink">
+        {stat.value}
+      </div>
+      {stat.caption && (
+        <p className="mt-2 text-xs text-muted tabular">{stat.caption}</p>
+      )}
+    </div>
+  );
+}
+
+function PanelHeader({ title, meta }: { title: string; meta?: string }) {
+  return (
+    <header className="px-6 py-4 border-b border-line flex items-baseline justify-between">
+      <div className="flex items-center gap-3">
+        <span className="w-1 h-4 bg-accent" aria-hidden />
+        <h2 className="text-sm font-medium text-ink">{title}</h2>
+      </div>
+      {meta && <span className="label">{meta}</span>}
+    </header>
+  );
+}
 
 export default function DetailedAnalytics() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
-  const [startDate, setStartDate] = React.useState('');
-  const [endDate, setEndDate] = React.useState('');
+  const [dateRange, setDateRange] = React.useState<DateRange>({ startDate: '', endDate: '', preset: 'all' });
   const [exporting, setExporting] = React.useState(false);
   const [responses, setResponses] = React.useState<SurveyResponse[]>([]);
   const [surveyMeta, setSurveyMeta] = React.useState<Survey | null>(null);
@@ -27,8 +63,8 @@ export default function DetailedAnalytics() {
   const fetchData = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (startDate) params.append('start_date', new Date(startDate).toISOString());
-    if (endDate) params.append('end_date', new Date(endDate).toISOString());
+    if (dateRange.startDate) params.append('start_date', new Date(dateRange.startDate).toISOString());
+    if (dateRange.endDate) params.append('end_date', new Date(dateRange.endDate).toISOString());
     const qs = params.toString() ? `?${params}` : '';
 
     // Per-survey analytics (custom shape)
@@ -55,7 +91,7 @@ export default function DetailedAnalytics() {
       .catch((err: any) => setResponsesError(err?.message || 'Unable to load responses'));
   };
 
-  React.useEffect(() => { fetchData(); fetchResponses(); }, [id, startDate, endDate]);
+  React.useEffect(() => { fetchData(); fetchResponses(); }, [id, dateRange.startDate, dateRange.endDate]);
 
   const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
     setExporting(true);
@@ -76,91 +112,97 @@ export default function DetailedAnalytics() {
     }
   };
 
+  const resetFilters = () => setDateRange({ startDate: '', endDate: '', preset: 'all' });
+  const hasFilter = dateRange.preset !== 'all';
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-pulse text-gray-400 font-medium">Loading detailed analytics...</div>
+      <div className="animate-pulse text-muted label">Loading detailed analytics…</div>
     </div>
   );
 
   if (!data) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="text-gray-400">Failed to load analytics</div>
+      <div className="text-muted label">Failed to load analytics</div>
     </div>
   );
 
+  const kpiStats: KpiStat[] = [
+    {
+      index: '01',
+      label: 'Total Responses',
+      value: data.totalResponses,
+      caption: 'submitted',
+    },
+    {
+      index: '02',
+      label: 'Response Rate',
+      value: data.responseRate,
+      caption: 'of distributed emails',
+    },
+    {
+      index: '03',
+      label: 'Completion Rate',
+      value: data.completionRate,
+      caption: 'of sessions finished',
+    },
+    {
+      index: '04',
+      label: 'NPS Score',
+      value: data.nps,
+      caption: `CSAT ${data.csat}/5`,
+    },
+  ];
+
   return (
     <div className="space-y-6 md:space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <button onClick={() => navigate(-1)} className="flex items-center text-gray-500 hover:text-gray-900 transition-colors w-fit">
-          <ArrowLeft size={20} className="mr-2" /> Back
-        </button>
-        <div className="md:text-right">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{data.surveyTitle}</h2>
-          <p className="text-sm text-gray-500">Detailed Performance Report</p>
+      {/* Title strip */}
+      <div className="flex items-end justify-between gap-6 border-b border-line pb-4 rise">
+        <div>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center label hover:text-accent transition-colors mb-2"
+          >
+            <ArrowLeft size={14} className="mr-1.5" /> Back
+          </button>
+          <div className="label" style={{ fontSize: '10px' }}>
+            Detailed Performance Report
+          </div>
+          <h1 className="mt-2 text-2xl font-medium text-ink tracking-tight">
+            {data.surveyTitle}
+          </h1>
+        </div>
+        <div className="label hidden sm:block">
+          Survey Analytics
         </div>
       </div>
 
-      {/* Filters + Export */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <Calendar size={16} className="text-gray-400" />
-        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-        <span className="text-gray-400 text-sm">to</span>
-        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-        {(startDate || endDate) && (
-          <button onClick={() => { setStartDate(''); setEndDate(''); }}
-            className="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 transition-all">
-            Clear
-          </button>
-        )}
+      {/* Filter + Export bar */}
+      <FilterBar onReset={hasFilter ? resetFilters : undefined} className="rise" loading={loading && !hasFilter}>
+        <DateRangeControl value={dateRange} onChange={setDateRange} />
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-gray-400 font-medium">Export:</span>
+          <span className="label">Export</span>
           {(['csv', 'xlsx', 'pdf'] as const).map(fmt => (
-            <button key={fmt} onClick={() => handleExport(fmt)} disabled={exporting}
-              className="flex items-center px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all disabled:opacity-50">
-              <Download size={13} className="mr-1" /> {fmt.toUpperCase()}
+            <button
+              key={fmt}
+              onClick={() => handleExport(fmt)}
+              disabled={exporting}
+              className="flex items-center border border-line text-muted hover:text-accent hover:border-accent px-3 py-1.5 text-[13px] transition-colors disabled:opacity-50"
+            >
+              <Download size={13} className="mr-1.5" /> {fmt.toUpperCase()}
             </button>
           ))}
         </div>
-      </div>
+      </FilterBar>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Users size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Total Responses</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.totalResponses}</h3>
+      {/* KPI band */}
+      <section className="bg-surface border border-line rise">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 divide-line">
+          {kpiStats.map((s) => (
+            <KpiCell key={s.index} stat={s} />
+          ))}
         </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><TrendingUp size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Response Rate</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.responseRate}</h3>
-          <p className="text-xs text-gray-400 mt-2">Based on distributed emails</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><PieChartIcon size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Completion Rate</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.completionRate}</h3>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><ThumbsUp size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">NPS Score</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.nps}</h3>
-          <p className="text-xs text-gray-400 mt-2">CSAT: {data.csat}/5</p>
-        </div>
-      </div>
+      </section>
 
       {/* Engagement Panel (Response distribution + Department heatmap) */}
       <EngagementPanel
@@ -170,34 +212,83 @@ export default function DetailedAnalytics() {
       />
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">CSAT Score Over Time</h3>
-          <div className="h-64">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="bg-surface border border-line flex flex-col">
+          <PanelHeader title="CSAT Score Over Time" meta="1–5 scale" />
+          <div className="px-4 pt-4 pb-2 h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.csatOverTime}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                <YAxis domain={[0, 5]} axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5' }} />
+              <LineChart data={data.csatOverTime} margin={{ top: 16, right: 8, left: -12, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="0" stroke="#eff1f4" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  axisLine={{ stroke: '#e3e5ea' }}
+                  tickLine={false}
+                  tick={{ fill: '#5b6472', fontSize: 11, fontFamily: 'Geist Mono' }}
+                  height={30}
+                />
+                <YAxis
+                  domain={[0, 5]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#5b6472', fontSize: 11, fontFamily: 'Geist Mono' }}
+                  width={32}
+                />
+                <Tooltip
+                  cursor={{ stroke: '#1d4ed8', strokeOpacity: 0.25, strokeDasharray: '2 4' }}
+                  contentStyle={{
+                    background: '#0b1220',
+                    border: 'none',
+                    borderRadius: 2,
+                    color: '#f7f8fa',
+                    fontSize: 11,
+                    fontFamily: 'Geist Mono',
+                    padding: '6px 10px',
+                  }}
+                  labelStyle={{ color: '#9aa3af', textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#1d4ed8"
+                  strokeWidth={1.5}
+                  dot={{ r: 2.5, fill: '#1d4ed8', strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: '#1d4ed8', stroke: '#ffffff', strokeWidth: 2 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
 
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Common Feedback Themes</h3>
+        <section className="bg-surface border border-line flex flex-col">
+          <PanelHeader title="Common Feedback Themes" meta={`${data.commonThemes.length} themes`} />
           {data.commonThemes.length > 0 ? (
-            <div className="h-64">
+            <div className="px-4 pt-4 pb-2 h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.commonThemes} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                <BarChart data={data.commonThemes} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="0" horizontal={false} stroke="#eff1f4" />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="theme" type="category" axisLine={false} tickLine={false}
-                    tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }} width={100} />
-                  <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
+                  <YAxis
+                    dataKey="theme"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#5b6472', fontSize: 11, fontFamily: 'Geist Mono' }}
+                    width={100}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(29, 78, 216, 0.06)' }}
+                    contentStyle={{
+                      background: '#0b1220',
+                      border: 'none',
+                      borderRadius: 2,
+                      color: '#f7f8fa',
+                      fontSize: 11,
+                      fontFamily: 'Geist Mono',
+                      padding: '6px 10px',
+                    }}
+                    labelStyle={{ color: '#9aa3af', textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                  />
+                  <Bar dataKey="count" barSize={20}>
                     {data.commonThemes.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -206,117 +297,116 @@ export default function DetailedAnalytics() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-400 italic text-sm">
+            <div className="h-64 flex items-center justify-center text-muted italic text-sm">
               No text responses collected yet
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Individual Responses */}
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-6 gap-2">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Individual Responses</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Visible to the survey owner and administrators.
-            </p>
-          </div>
-          <span className="text-sm text-gray-400">{responses.length} submission{responses.length === 1 ? '' : 's'}</span>
-        </div>
+      <section className="bg-surface border border-line">
+        <PanelHeader title="Individual Responses" meta={`${responses.length} submission${responses.length === 1 ? '' : 's'}`} />
+        <div className="p-6 md:p-8">
+          <p className="label mb-4">Visible to the survey owner and administrators</p>
 
-        {responsesError && (
-          <div className="p-3 mb-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
-            {responsesError}
-          </div>
-        )}
+          {responsesError && (
+            <div className="p-3 mb-4 bg-canvas border border-line text-sm" style={{ color: 'var(--color-negative)' }}>
+              {responsesError}
+            </div>
+          )}
 
-        {responses.length === 0 && !responsesError ? (
-          <div className="text-center py-12 text-gray-400 italic">No responses yet.</div>
-        ) : (
-          <div className="space-y-2">
-            {responses.map((r) => {
-              const isOpen = expandedId === r.id;
-              const displayName = r.isAnonymous
-                ? 'Anonymous'
-                : (r.respondentName?.trim() || 'Unnamed respondent');
-              return (
-                <div key={r.id} className="border border-gray-100 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(isOpen ? null : r.id)}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-gray-100 text-gray-500' : 'bg-indigo-50 text-indigo-600'}`}>
-                        {r.isAnonymous ? <EyeOff size={16} /> : <UserRound size={16} />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-                        <p className="text-xs text-gray-500">
-                          {r.submittedAt ? format(new Date(r.submittedAt), 'MMM d, yyyy · h:mm a') : '—'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      {!r.is_complete && (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium border border-amber-100">
-                          Incomplete
-                        </span>
-                      )}
-                      {isOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
-                    </div>
-                  </button>
-                  {isOpen && (
-                    <div className="px-4 pb-4 pt-1 bg-gray-50/50 border-t border-gray-100 space-y-3">
-                      {(surveyMeta?.questions || []).map((q) => {
-                        const val = r.answers?.[q.id];
-                        const display =
-                          val === undefined || val === null || val === ''
-                            ? <span className="text-gray-400 italic">No answer</span>
-                            : typeof val === 'number'
-                            ? <span className="font-semibold text-indigo-600">{val} / 5</span>
-                            : String(val);
-                        return (
-                          <div key={q.id} className="text-sm">
-                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">{q.text || '(untitled question)'}</p>
-                            <p className="text-gray-800 break-words whitespace-pre-wrap">{display}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Open-ended responses */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-900">Open-Ended Responses</h3>
-          <span className="text-sm text-gray-400">{data.openEndedResponses.length} responses</span>
-        </div>
-        <div className="space-y-4">
-          {data.openEndedResponses.length > 0 ? (
-            data.openEndedResponses.map((resp: string, i: number) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start space-x-4">
-                <div className="mt-1 p-1.5 bg-white rounded-lg border border-gray-200 text-gray-400">
-                  <MessageSquare size={14} />
-                </div>
-                <p className="text-sm text-gray-700 leading-relaxed italic">"{resp}"</p>
-              </motion.div>
-            ))
+          {responses.length === 0 && !responsesError ? (
+            <div className="text-center py-12 text-muted italic">No responses yet.</div>
           ) : (
-            <div className="text-center py-12 text-gray-400 italic">
-              No open-ended responses collected yet for this survey.
+            <div className="divide-y divide-line border-t border-b border-line">
+              {responses.map((r) => {
+                const isOpen = expandedId === r.id;
+                const displayName = r.isAnonymous
+                  ? 'Anonymous'
+                  : (r.respondentName?.trim() || 'Unnamed respondent');
+                return (
+                  <div key={r.id}>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isOpen ? null : r.id)}
+                      className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-accent-soft/40 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-line-2 text-muted' : 'bg-accent-soft text-accent'}`}>
+                          {r.isAnonymous ? <EyeOff size={16} /> : <UserRound size={16} />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-ink truncate">{displayName}</p>
+                          <p className="label tabular mt-0.5">
+                            {r.submittedAt ? format(new Date(r.submittedAt), 'MMM d, yyyy · h:mm a') : '—'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        {!r.is_complete && (
+                          <span className="label border border-line px-2 py-0.5">
+                            Incomplete
+                          </span>
+                        )}
+                        {isOpen ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-3 bg-canvas border-t border-line space-y-3">
+                        {(surveyMeta?.questions || []).map((q) => {
+                          const val = r.answers?.[q.id];
+                          const display =
+                            val === undefined || val === null || val === ''
+                              ? <span className="text-muted italic">No answer</span>
+                              : typeof val === 'number'
+                              ? <span className="font-medium text-accent tabular">{val} / 5</span>
+                              : String(val);
+                          return (
+                            <div key={q.id} className="text-sm">
+                              <p className="label mb-0.5">{q.text || '(untitled question)'}</p>
+                              <p className="text-ink-2 break-words whitespace-pre-wrap">{display}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      {/* Open-ended responses */}
+      <section className="bg-surface border border-line">
+        <PanelHeader title="Open-Ended Responses" meta={`${data.openEndedResponses.length} responses`} />
+        <div className="p-6 md:p-8">
+          <div className="space-y-4">
+            {data.openEndedResponses.length > 0 ? (
+              data.openEndedResponses.map((resp: string, i: number) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="p-4 bg-canvas border border-line flex items-start gap-4"
+                >
+                  <div className="mt-0.5 p-1.5 bg-surface border border-line text-muted">
+                    <MessageSquare size={14} />
+                  </div>
+                  <p className="text-sm text-ink-2 leading-relaxed italic">"{resp}"</p>
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-center py-12 text-muted italic">
+                No open-ended responses collected yet for this survey.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
