@@ -78,8 +78,8 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
           <AreaChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 6 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                <stop offset="0%" stopColor="#1d4ed8" stopOpacity={0.22} />
+                <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -91,7 +91,7 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
             />
             <YAxis hide domain={[0, 'dataMax + 1']} />
             <Tooltip
-              cursor={{ stroke: '#f59e0b', strokeOpacity: 0.4, strokeDasharray: '2 4' }}
+              cursor={{ stroke: '#1d4ed8', strokeOpacity: 0.4, strokeDasharray: '2 4' }}
               contentStyle={{
                 borderRadius: 8,
                 border: '1px solid #e7e5e4',
@@ -103,11 +103,11 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
             <Area
               type="monotone"
               dataKey="responses"
-              stroke="#f59e0b"
+              stroke="#1d4ed8"
               strokeWidth={1.75}
               fill="url(#trendFill)"
-              dot={{ r: 2.5, fill: '#f59e0b', strokeWidth: 0 }}
-              activeDot={{ r: 4.5, fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 2 }}
+              dot={{ r: 2.5, fill: '#1d4ed8', strokeWidth: 0 }}
+              activeDot={{ r: 4.5, fill: '#1d4ed8', stroke: '#ffffff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
