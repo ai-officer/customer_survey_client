@@ -119,7 +119,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="flex space-x-3 pt-2">
               <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
+                className="flex-1 py-2.5 bg-canvas text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
                 Cancel
               </button>
               <button type="submit" disabled={loading}
@@ -181,27 +181,29 @@ export default function Layout({ children }: LayoutProps) {
     || 'System';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-canvas flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <header className="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-40">
-        <span className="font-bold text-lg text-indigo-600">CSS Admin</span>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <header className="md:hidden h-16 bg-surface border-b border-line flex items-center justify-between px-4 sticky top-0 z-40">
+        <span className="font-display text-xl text-ink tracking-tight">
+          <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
+        </span>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-accent-soft rounded-lg transition-colors">
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </header>
 
       {/* Sidebar (Desktop) */}
       <aside className={cn(
-        "hidden md:flex bg-white border-r border-gray-200 transition-all duration-300 flex-col sticky top-0 h-screen",
+        "hidden md:flex bg-surface border-r border-line transition-all duration-300 flex-col sticky top-0 h-screen",
         isSidebarOpen ? "w-64" : "w-20"
       )}>
         <div className="p-6 flex items-center justify-between">
           {isSidebarOpen && (
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-xl text-indigo-600">
-              CSS Admin
+            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-display text-xl text-ink tracking-tight">
+              <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
             </motion.span>
           )}
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-accent-soft rounded-sm transition-colors">
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
@@ -209,17 +211,20 @@ export default function Layout({ children }: LayoutProps) {
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <Link key={item.path} to={item.path} className={cn(
-              "flex items-center p-3 rounded-xl transition-all group",
+              "flex items-center p-3 rounded-sm transition-all group relative",
               location.pathname === item.path
-                ? "bg-indigo-50 text-indigo-600"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-accent-soft text-ink"
+                : "text-muted hover:text-ink hover:bg-[color:rgba(181,71,24,0.04)]"
             )}>
-              <item.icon size={22} className={cn(
-                "transition-transform group-hover:scale-110 flex-shrink-0",
-                location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
+              {location.pathname === item.path && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent" aria-hidden />
+              )}
+              <item.icon size={20} className={cn(
+                "transition-transform group-hover:scale-105 flex-shrink-0",
+                location.pathname === item.path ? "text-accent" : "text-muted"
               )} />
               {isSidebarOpen && (
-                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-medium">
+                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-display text-[15px]">
                   {item.label}
                 </motion.span>
               )}
@@ -227,23 +232,27 @@ export default function Layout({ children }: LayoutProps) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100 space-y-2">
+        <div className="p-4 border-t border-line space-y-1">
           {isSidebarOpen && user && (
-            <div className="px-3 py-2">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name}</p>
-              <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+            <div className="px-3 py-3">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-muted font-medium">Signed in as</p>
+              <p className="mt-1 font-display text-ink truncate leading-tight">{user.full_name}</p>
+              <p className="text-xs text-muted italic capitalize">{user.role}</p>
             </div>
           )}
           <button
             onClick={() => setShowChangePassword(true)}
-            className="flex items-center w-full p-3 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all group"
+            className="flex items-center w-full p-3 text-muted hover:text-ink hover:bg-[color:rgba(181,71,24,0.04)] rounded-sm transition-all group"
           >
-            <KeyRound size={22} className="flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-medium">Change Password</span>}
+            <KeyRound size={18} className="flex-shrink-0" />
+            {isSidebarOpen && <span className="ml-3 font-display text-[14px]">Change password</span>}
           </button>
-          <button onClick={handleLogout} className="flex items-center w-full p-3 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group">
-            <LogOut size={22} className="group-hover:translate-x-1 transition-transform flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-medium">Logout</span>}
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full p-3 text-muted hover:text-accent hover:bg-accent-soft rounded-sm transition-all group"
+          >
+            <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+            {isSidebarOpen && <span className="ml-3 font-display text-[14px]">Sign out</span>}
           </button>
         </div>
       </aside>
@@ -260,21 +269,26 @@ export default function Layout({ children }: LayoutProps) {
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-white z-50 md:hidden shadow-2xl flex flex-col"
+              className="fixed inset-y-0 left-0 w-72 bg-surface z-50 md:hidden shadow-2xl flex flex-col"
             >
-              <div className="p-6 flex items-center justify-between border-b border-gray-100">
-                <span className="font-bold text-xl text-indigo-600">CSS Admin</span>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+              <div className="p-6 flex items-center justify-between border-b border-line">
+                <span className="font-display text-xl text-ink tracking-tight">
+                  <span className="text-accent">✦</span> CSS <span className="italic text-muted">Admin</span>
+                </span>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-accent-soft rounded-sm"><X size={24} /></button>
               </div>
-              <nav className="flex-1 p-4 space-y-2">
+              <nav className="flex-1 p-4 space-y-1">
                 {navItems.map((item) => (
                   <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center p-4 rounded-2xl transition-all",
-                      location.pathname === item.path ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-50"
+                      "flex items-center p-4 rounded-sm transition-all relative",
+                      location.pathname === item.path ? "bg-accent-soft text-ink" : "text-muted hover:text-ink"
                     )}>
-                    <item.icon size={24} className="mr-4" />
-                    <span className="font-semibold text-lg">{item.label}</span>
+                    {location.pathname === item.path && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent" aria-hidden />
+                    )}
+                    <item.icon size={22} className={cn("mr-4", location.pathname === item.path ? "text-accent" : "text-muted")} />
+                    <span className="font-display text-lg">{item.label}</span>
                   </Link>
                 ))}
               </nav>
@@ -302,18 +316,21 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="hidden md:flex h-16 bg-white border-b border-gray-200 items-center justify-between px-8 sticky top-0 z-30">
-          <h1 className="text-lg font-semibold text-gray-800">{pageTitle}</h1>
+        <header className="hidden md:flex h-16 bg-surface border-b border-line items-center justify-between px-8 sticky top-0 z-30">
+          <div className="flex items-baseline gap-3">
+            <span className="text-[10px] uppercase tracking-[0.28em] text-muted">§</span>
+            <h1 className="font-display text-lg text-ink tracking-tight">{pageTitle}</h1>
+          </div>
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(v => !v)}
-              className="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-3 py-2 transition-all"
+              className="flex items-center space-x-3 hover:bg-[color:rgba(181,71,24,0.04)] rounded-sm px-3 py-2 transition-all"
             >
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.full_name || ''}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role || ''}</p>
+                <p className="font-display text-[14px] text-ink leading-tight">{user?.full_name || ''}</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-muted capitalize">{user?.role || ''}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-accent-soft flex items-center justify-center text-accent font-display text-sm border border-accent/20">
                 {initials}
               </div>
             </button>
@@ -323,19 +340,19 @@ export default function Layout({ children }: LayoutProps) {
                   initial={{ opacity: 0, y: 8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-sm border border-line shadow-lg overflow-hidden z-50"
                 >
                   <button
                     onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
-                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                    className="flex items-center w-full px-4 py-3 text-sm text-ink hover:bg-accent-soft transition-colors font-display"
                   >
-                    <KeyRound size={16} className="mr-2" /> Change Password
+                    <KeyRound size={16} className="mr-2 text-muted" /> Change password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                    className="flex items-center w-full px-4 py-3 text-sm text-accent hover:bg-accent-soft transition-colors border-t border-line font-display"
                   >
-                    <LogOut size={16} className="mr-2" /> Logout
+                    <LogOut size={16} className="mr-2" /> Sign out
                   </button>
                 </motion.div>
               )}
@@ -359,14 +376,14 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden h-16 bg-white border-t border-gray-200 flex items-center justify-around px-2 sticky bottom-0 z-40">
+      <nav className="md:hidden h-16 bg-surface border-t border-line flex items-center justify-around px-2 sticky bottom-0 z-40">
         {navItems.slice(0, 4).map((item) => (
           <Link key={item.path} to={item.path} className={cn(
             "flex flex-col items-center justify-center flex-1 py-1 transition-colors",
-            location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
+            location.pathname === item.path ? "text-accent" : "text-muted"
           )}>
             <item.icon size={20} />
-            <span className="text-[10px] font-medium mt-1">{item.label}</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] mt-1 font-display">{item.label}</span>
           </Link>
         ))}
       </nav>

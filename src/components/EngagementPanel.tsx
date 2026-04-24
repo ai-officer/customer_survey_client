@@ -1,20 +1,18 @@
 import React from 'react';
-import { Info, TrendingDown, TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { cn } from '../lib/utils';
 
 const HEATMAP_COLUMNS = [
-  'Participation Rate',
+  'Participation',
   'e-NPS',
   'Autonomy',
-  'Work Environment',
+  'Environment',
   'Leadership',
   'Management',
-  'Work Life Balance',
+  'Balance',
 ];
 
-// Columns 0 and 1 map to real backend fields; columns 2-6 are placeholders
-// until per-question driver categorization is added to the data model.
 const PLACEHOLDER_COL_START = 2;
 
 export interface RatingBucket {
@@ -38,9 +36,9 @@ interface EngagementPanelProps {
   loading?: boolean;
 }
 
-// Map a value within a column's typical range to a heatmap color band.
+// Warm editorial heatmap scale — terracotta → olive → forest
 function cellColor(columnIndex: number, value: number): { bg: string; text: string } {
-  let score: number; // normalized 0..1
+  let score: number;
   if (columnIndex === 0) {
     score = Math.max(0, Math.min(1, value / 100));
   } else if (columnIndex === 1) {
@@ -49,15 +47,16 @@ function cellColor(columnIndex: number, value: number): { bg: string; text: stri
     score = Math.max(0, Math.min(1, value / 10));
   }
 
-  if (score < 0.25) return { bg: 'bg-rose-300', text: 'text-rose-900' };
-  if (score < 0.45) return { bg: 'bg-orange-200', text: 'text-orange-900' };
-  if (score < 0.6) return { bg: 'bg-amber-100', text: 'text-amber-900' };
-  if (score < 0.8) return { bg: 'bg-lime-200', text: 'text-lime-900' };
-  return { bg: 'bg-emerald-300', text: 'text-emerald-900' };
+  // Warm ramp: burnt sienna → apricot → straw → sage → moss
+  if (score < 0.25) return { bg: '#e6a087', text: '#5c1f0a' };
+  if (score < 0.45) return { bg: '#f0c79a', text: '#6e3c16' };
+  if (score < 0.6)  return { bg: '#eddfa7', text: '#5a4b18' };
+  if (score < 0.8)  return { bg: '#c6cf9a', text: '#3b4820' };
+  return { bg: '#8fae82', text: '#1e3220' };
 }
 
 function formatCell(columnIndex: number, value: number): string {
-  if (columnIndex === 0) return `${value.toFixed(1)}`;
+  if (columnIndex === 0) return value.toFixed(1);
   if (columnIndex === 1) return `${Math.round(value)}`;
   return value.toFixed(1);
 }
@@ -69,7 +68,6 @@ export default function EngagementPanel({
   departmentEngagement = null,
   loading = false,
 }: EngagementPanelProps) {
-  // eNPS bar chart data — derived from the 1–5 rating distribution.
   const chartData = React.useMemo(() => {
     const buckets = ratingDistribution ?? [];
     return [1, 2, 3, 4, 5].map((n) => {
@@ -79,8 +77,9 @@ export default function EngagementPanel({
   }, [ratingDistribution]);
 
   const maxBar = Math.max(10, ...chartData.map((d) => d.value));
+  const totalResponses = chartData.reduce((sum, d) => sum + d.value, 0);
 
-  const displayRate = completionRate == null ? '—' : `${completionRate.toFixed(1)}%`;
+  const displayRate = completionRate == null ? '—' : completionRate.toFixed(1);
   const delta =
     completionRate != null && previousCompletionRate != null
       ? completionRate - previousCompletionRate
@@ -89,98 +88,150 @@ export default function EngagementPanel({
   const rows = departmentEngagement ?? [];
 
   return (
-    <div className="space-y-6">
-      {/* Participation rate banner */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-wrap items-center gap-6">
-        <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-          <span>Participation rate</span>
-          <Info size={14} className="text-gray-400" />
+    <div className="space-y-8">
+      {/* Participation — the hero number, set as a pull-quote */}
+      <div className="relative py-6 border-y border-line flex flex-wrap items-baseline gap-x-10 gap-y-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-muted font-medium">
+            Participation
+          </p>
+          <p className="mt-2 font-display italic text-sm text-muted max-w-xs">
+            share of distributed surveys that were completed
+          </p>
         </div>
-        <div className="text-4xl font-bold text-gray-900 leading-none">
-          {loading ? '…' : displayRate}
+        <div className="flex items-baseline gap-1">
+          <span
+            className="font-display tabular text-ink leading-none"
+            style={{
+              fontSize: 'clamp(4rem, 9vw, 7rem)',
+              fontVariationSettings: '"opsz" 144, "SOFT" 100, "wght" 300',
+            }}
+          >
+            {loading ? '—' : displayRate}
+          </span>
+          <span className="font-display text-3xl text-muted">%</span>
         </div>
         {delta !== null && delta !== 0 && (
           <div
             className={cn(
-              'flex items-center gap-1 text-sm font-medium',
-              delta < 0 ? 'text-rose-500' : 'text-emerald-600'
+              'flex items-center gap-1 font-display italic text-sm',
+              delta < 0 ? 'text-accent' : 'text-[color:#3b6147]'
             )}
           >
-            <span>{Math.abs(delta).toFixed(1)}%</span>
             {delta < 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-            <span className="text-gray-500 font-normal">
-              {delta < 0 ? 'decrease' : 'increase'} from previous period
+            <span className="tabular">{Math.abs(delta).toFixed(1)}%</span>
+            <span className="text-muted not-italic text-[11px] uppercase tracking-[0.18em] ml-1">
+              vs. prior
             </span>
           </div>
         )}
         {delta === null && !loading && (
-          <div className="text-xs text-gray-400">Apply a date range to compare against the previous period.</div>
+          <span className="text-[11px] uppercase tracking-[0.22em] text-muted">
+            pick a date range to compare
+          </span>
         )}
       </div>
 
-      {/* Responses chart + Engagement Score by Drivers — side by side */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        {/* Responses (rating distribution) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Responses</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Response counts per rating (1–5).
-            </p>
-          </div>
-          <div className="h-72">
+      {/* Responses + Drivers, bound as a spread */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+        {/* Responses — left page */}
+        <article className="xl:col-span-2 bg-surface border border-line rounded-sm p-7 space-y-6 grain">
+          <header className="flex items-baseline gap-3">
+            <span className="text-[10px] uppercase tracking-[0.28em] text-accent font-medium">
+              Fig. I
+            </span>
+            <h2 className="font-display text-2xl text-ink font-light tracking-tight">
+              Responses
+            </h2>
+          </header>
+          <p className="font-display italic text-sm text-muted -mt-4">
+            Distribution of ratings, one through five.
+          </p>
+
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 24, right: 16, left: 0, bottom: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <BarChart data={chartData} margin={{ top: 24, right: 12, left: -10, bottom: 24 }}>
+                <CartesianGrid strokeDasharray="2 4" stroke="#e8ddd0" vertical={false} />
                 <XAxis
                   dataKey="rating"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  label={{ value: 'Rating (1–5)', position: 'insideBottom', offset: -15, fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: '#8a7f74', fontSize: 11, fontFamily: 'Instrument Sans' }}
+                  label={{ value: '1 — 5', position: 'insideBottom', offset: -8, fill: '#8a7f74', fontSize: 10, fontStyle: 'italic', fontFamily: 'Fraunces' }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  domain={[0, Math.ceil(maxBar * 1.15)]}
+                  tick={{ fill: '#8a7f74', fontSize: 11, fontFamily: 'Instrument Sans' }}
+                  domain={[0, Math.ceil(maxBar * 1.2)]}
                   allowDecimals={false}
-                  label={{ value: 'Responses', angle: -90, position: 'insideLeft', fill: '#6b7280', fontSize: 12, offset: 10 }}
+                  width={32}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(249, 168, 168, 0.1)' }}
-                  contentStyle={{ borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: 12 }}
+                  cursor={{ fill: 'rgba(181, 71, 24, 0.08)' }}
+                  contentStyle={{
+                    background: '#1a1510',
+                    border: 'none',
+                    borderRadius: 2,
+                    color: '#fbf8f3',
+                    fontSize: 11,
+                    fontFamily: 'Instrument Sans',
+                    padding: '8px 12px',
+                  }}
+                  labelStyle={{ color: '#fbeadb', fontStyle: 'italic', fontFamily: 'Fraunces' }}
                 />
-                <Bar dataKey="value" fill="#f8a5a5" radius={[3, 3, 0, 0]} barSize={36}>
-                  <LabelList dataKey="value" position="top" style={{ fill: '#374151', fontSize: 11, fontWeight: 500 }} />
+                <Bar dataKey="value" fill="#b54718" radius={[1, 1, 0, 0]} barSize={32}>
+                  <LabelList
+                    dataKey="value"
+                    position="top"
+                    style={{ fill: '#1a1510', fontSize: 11, fontFamily: 'Fraunces', fontWeight: 400 }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
-        {/* Engagement Score by Drivers */}
-        <div className="xl:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Engagement Score by Drivers</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              This heatmap shows engagement drivers/areas at a glance across teams. Participation Rate and e-NPS are live; the remaining driver columns will populate once survey questions can be tagged with driver categories.
-            </p>
-          </div>
+          <footer className="pt-4 border-t border-line flex items-baseline justify-between">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted">Total</span>
+            <span className="font-display tabular text-2xl text-ink">{totalResponses}</span>
+          </footer>
+        </article>
+
+        {/* Drivers — right page */}
+        <article className="xl:col-span-3 bg-surface border border-line rounded-sm p-7 space-y-5 grain">
+          <header className="flex items-baseline gap-3">
+            <span className="text-[10px] uppercase tracking-[0.28em] text-accent font-medium">
+              Fig. II
+            </span>
+            <h2 className="font-display text-2xl text-ink font-light tracking-tight">
+              Engagement, by driver
+            </h2>
+          </header>
+          <p className="font-display italic text-sm text-muted -mt-3">
+            A heatmap across departments. Participation and e-NPS are live; driver columns await question-level categorisation.
+          </p>
 
           {rows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-400 italic">
-              {loading ? 'Loading department engagement…' : 'No responses yet. The heatmap will populate as surveys receive submissions.'}
+            <div className="py-16 text-center">
+              <p className="font-display italic text-muted">
+                {loading ? 'Turning pages…' : 'Nothing to show yet — the column will fill as responses arrive.'}
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-separate" style={{ borderSpacing: '6px 4px' }}>
+            <div className="overflow-x-auto -mx-2 px-2">
+              <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '4px 6px' }}>
                 <thead>
                   <tr>
-                    <th className="w-28 text-left font-normal text-gray-400 pb-2 text-xs">Team</th>
+                    <th className="text-left pb-2 pr-3 w-28 align-bottom">
+                      <span className="text-[10px] uppercase tracking-[0.24em] text-muted font-medium">
+                        Team
+                      </span>
+                    </th>
                     {HEATMAP_COLUMNS.map((col) => (
-                      <th key={col} className="text-center font-normal text-gray-500 pb-2 px-1 text-[11px] whitespace-nowrap">
-                        <span className="border-b border-dashed border-gray-300 pb-0.5">{col}</span>
+                      <th key={col} className="pb-2 px-1 align-bottom">
+                        <span className="block text-center font-display italic text-[11px] text-muted whitespace-nowrap">
+                          {col}
+                        </span>
                       </th>
                     ))}
                   </tr>
@@ -190,12 +241,18 @@ export default function EngagementPanel({
                     const cells: Array<number | null> = [
                       row.participationRate ?? null,
                       row.nps ?? null,
-                      null, null, null, null, null, // driver columns: awaits driver_category tagging
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
                     ];
                     return (
-                      <tr key={row.department}>
-                        <td className="py-1 pr-2 font-medium text-gray-700 text-sm whitespace-nowrap">
-                          {row.department}
+                      <tr key={row.department} className="group">
+                        <td className="pr-3 align-middle">
+                          <span className="font-display text-ink text-sm leading-tight">
+                            {row.department}
+                          </span>
                         </td>
                         {cells.map((value, colIdx) => {
                           if (value == null) {
@@ -203,14 +260,18 @@ export default function EngagementPanel({
                               <td key={colIdx} className="p-0">
                                 <div
                                   className={cn(
-                                    'h-8 min-w-14 rounded-md flex items-center justify-center text-xs border',
+                                    'h-9 min-w-14 rounded-sm flex items-center justify-center text-[11px] font-display italic',
                                     colIdx >= PLACEHOLDER_COL_START
-                                      ? 'bg-gray-50 border-gray-100 text-gray-300'
-                                      : 'bg-gray-50 border-gray-100 text-gray-400'
+                                      ? 'bg-[color:#f5eee2] text-[color:#c4b5a1]'
+                                      : 'bg-[color:#f5eee2] text-[color:#a99a85]'
                                   )}
-                                  title={colIdx >= PLACEHOLDER_COL_START ? 'Awaiting driver-category data' : 'No data'}
+                                  title={
+                                    colIdx >= PLACEHOLDER_COL_START
+                                      ? 'Awaiting driver-category data'
+                                      : 'No data'
+                                  }
                                 >
-                                  —
+                                  ·
                                 </div>
                               </td>
                             );
@@ -219,11 +280,8 @@ export default function EngagementPanel({
                           return (
                             <td key={colIdx} className="p-0">
                               <div
-                                className={cn(
-                                  'h-8 min-w-14 rounded-md flex items-center justify-center text-xs font-semibold',
-                                  bg,
-                                  text
-                                )}
+                                className="h-9 min-w-14 rounded-sm flex items-center justify-center text-[12px] tabular font-medium transition-transform group-hover:scale-[1.02]"
+                                style={{ background: bg, color: text }}
                               >
                                 {formatCell(colIdx, value)}
                               </div>
@@ -237,7 +295,16 @@ export default function EngagementPanel({
               </table>
             </div>
           )}
-        </div>
+
+          <footer className="pt-4 border-t border-line flex items-center justify-between text-[10px] uppercase tracking-[0.22em] text-muted">
+            <span>Warm → cool ≈ Low → high engagement</span>
+            <div className="flex items-center gap-1.5">
+              {['#e6a087', '#f0c79a', '#eddfa7', '#c6cf9a', '#8fae82'].map((c) => (
+                <span key={c} className="w-4 h-2 rounded-sm" style={{ background: c }} />
+              ))}
+            </div>
+          </footer>
+        </article>
       </div>
     </div>
   );
