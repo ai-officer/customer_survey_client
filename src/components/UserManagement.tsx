@@ -1,22 +1,48 @@
 import React from 'react';
 import { Plus, Edit2, UserX, X, KeyRound, Eye, EyeOff } from '../lib/icons';
+import { motion } from 'motion/react';
 import { User, UserRole } from '../types';
 import { api } from '../lib/api';
 import { cn } from '../lib/utils';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
 
 const ROLES: UserRole[] = ['admin', 'manager'];
 
-const roleBadge = (role: UserRole) => {
-  const styles: Record<UserRole, string> = {
-    admin: 'bg-red-50 text-red-700 border-red-100',
-    manager: 'bg-blue-50 text-blue-700 border-blue-100',
-  };
+function roleBadge(role: UserRole) {
   return (
-    <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize', styles[role])}>
+    <Badge variant={role === 'admin' ? 'destructive' : 'primary'} className="normal-case tracking-normal">
       {role}
-    </span>
+    </Badge>
   );
-};
+}
+
+function statusBadge(active: boolean) {
+  return (
+    <Badge
+      variant={active ? 'success' : 'outline'}
+      className="normal-case tracking-normal gap-1.5"
+    >
+      <span
+        className={cn(
+          'h-1.5 w-1.5 rounded-full',
+          active ? 'bg-emerald-500' : 'bg-muted-foreground/60',
+        )}
+        aria-hidden
+      />
+      {active ? 'active' : 'deactivated'}
+    </Badge>
+  );
+}
 
 // ── User Modal ────────────────────────────────────────────────────────────────
 
@@ -58,77 +84,122 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">{isEdit ? 'Edit User' : 'Create User'}</h3>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
-            <X size={20} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.15 }}
+        className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-pop space-y-5"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="eyebrow">{isEdit ? 'account / edit' : 'account / create'}</div>
+            <h3 className="heading text-[18px] font-semibold text-foreground mt-1 leading-none">
+              {isEdit ? 'Edit user' : 'Create user'}
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors -mr-1"
+            aria-label="Close"
+          >
+            <X size={18} />
           </button>
         </div>
 
-        {error && <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>}
+        {error && (
+          <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+            <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isEdit && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+            <div className="space-y-1.5">
+              <Label htmlFor="user-email">Email</Label>
+              <Input
+                id="user-email"
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-            <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+
+          <div className="space-y-1.5">
+            <Label htmlFor="user-name">Full name</Label>
+            <Input
+              id="user-name"
+              type="text"
+              required
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              placeholder="Juan dela Cruz"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
-            <select value={role} onChange={e => setRole(e.target.value as UserRole)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-              {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-            </select>
+
+          <div className="space-y-1.5">
+            <Label>Role</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLES.map(r => (
+                  <SelectItem key={r} value={r}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+
+          <div className="space-y-1.5">
+            <Label htmlFor="user-password" className="flex items-center gap-1.5">
               {isEdit ? (
-                <span className="flex items-center gap-1.5">
-                  <KeyRound size={14} className="text-gray-400" />
-                  Reset Password <span className="text-gray-400 font-normal">(leave blank to keep current)</span>
-                </span>
+                <>
+                  <KeyRound size={12} className="text-muted-foreground" />
+                  Reset password
+                  <span className="text-muted-foreground font-normal">(leave blank to keep)</span>
+                </>
               ) : 'Password'}
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
+                id="user-password"
                 type={showPassword ? 'text' : 'password'}
                 required={!isEdit}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder={isEdit ? 'Enter new password to reset' : ''}
-                className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder={isEdit ? 'New password' : ''}
+                className="pr-9"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
                 tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
-          <div className="flex space-x-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
+
+          <div className="flex gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancel
-            </button>
-            <button type="submit" disabled={loading}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all text-sm disabled:opacity-50">
-              {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create User'}
-            </button>
+            </Button>
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Create user'}
+            </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -161,86 +232,91 @@ export default function UserManagement() {
     }
   };
 
+  const initials = (name: string) =>
+    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">User Management</h2>
-          <p className="text-sm text-gray-500">Manage system staff accounts</p>
+          <div className="eyebrow">directory</div>
+          <h2 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
+            Users
+          </h2>
+          <p className="text-[13px] text-muted-foreground mt-1">
+            Manage system staff accounts and roles.
+          </p>
         </div>
-        <button
-          onClick={() => setModalUser(null)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-200"
-        >
-          <Plus size={18} className="mr-2" /> Create User
-        </button>
+        <Button onClick={() => setModalUser(null)}>
+          <Plus size={14} /> Create user
+        </Button>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead className="w-[120px]">Role</TableHead>
+              <TableHead className="w-[140px]">Status</TableHead>
+              <TableHead className="w-[110px] text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-400">Loading users...</td></tr>
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  Loading users…
+                </TableCell>
+              </TableRow>
             ) : users.length === 0 ? (
-              <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-400">No users found</td></tr>
-            ) : users.map(user => (
-              <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
-                      {user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  No users found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map(user => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-md bg-secondary text-foreground font-mono text-[11px] font-semibold flex items-center justify-center border border-border">
+                        {initials(user.full_name)}
+                      </div>
+                      <span className="font-medium text-foreground">{user.full_name}</span>
                     </div>
-                    <span className="font-medium text-gray-900">{user.full_name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                <td className="px-6 py-4">{roleBadge(user.role)}</td>
-                <td className="px-6 py-4">
-                  <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border',
-                    user.is_active
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                      : 'bg-gray-50 text-gray-500 border-gray-100'
-                  )}>
-                    {user.is_active ? 'Active' : 'Deactivated'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={() => setModalUser(user)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                      title="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    {user.is_active && (
-                      <button
-                        onClick={() => deactivate(user)}
-                        disabled={actionLoading === user.id}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                        title="Deactivate"
-                      >
-                        <UserX size={16} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                  <TableCell>{roleBadge(user.role)}</TableCell>
+                  <TableCell>{statusBadge(user.is_active)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-0.5 opacity-70 hover:opacity-100 transition-opacity">
+                      <Button size="icon" variant="ghost" onClick={() => setModalUser(user)} aria-label="Edit">
+                        <Edit2 size={14} />
+                      </Button>
+                      {user.is_active && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => deactivate(user)}
+                          disabled={actionLoading === user.id}
+                          aria-label="Deactivate"
+                          className="hover:text-destructive hover:bg-red-50"
+                        >
+                          <UserX size={14} />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Create/Edit Modal */}
       {modalUser !== undefined && (

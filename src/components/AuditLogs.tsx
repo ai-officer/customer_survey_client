@@ -4,20 +4,28 @@ import { format } from 'date-fns';
 import { AuditLog } from '../types';
 import { api } from '../lib/api';
 import { SearchBar } from './ui/SearchBar';
+import { Card } from '@/components/ui/card';
+import { Badge, badgeVariants } from '@/components/ui/badge';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
+import type { VariantProps } from 'class-variance-authority';
 
-const ACTION_COLORS: Record<string, string> = {
-  LOGIN: 'bg-blue-50 text-blue-700',
-  REGISTER: 'bg-blue-50 text-blue-700',
-  CREATE_SURVEY: 'bg-emerald-50 text-emerald-700',
-  UPDATE_SURVEY: 'bg-amber-50 text-amber-700',
-  DELETE_SURVEY: 'bg-red-50 text-red-700',
-  DUPLICATE_SURVEY: 'bg-purple-50 text-purple-700',
-  DISTRIBUTE_SURVEY: 'bg-cyan-50 text-cyan-700',
-  REMIND_NON_RESPONDENTS: 'bg-orange-50 text-orange-700',
-  SUBMIT_RESPONSE: 'bg-teal-50 text-teal-700',
-  CREATE_USER: 'bg-green-50 text-green-700',
-  UPDATE_USER: 'bg-yellow-50 text-yellow-700',
-  DEACTIVATE_USER: 'bg-red-50 text-red-700',
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
+
+const ACTION_VARIANT: Record<string, BadgeVariant> = {
+  LOGIN: 'outline',
+  REGISTER: 'outline',
+  CREATE_SURVEY: 'success',
+  UPDATE_SURVEY: 'default',
+  DELETE_SURVEY: 'destructive',
+  DUPLICATE_SURVEY: 'default',
+  DISTRIBUTE_SURVEY: 'primary',
+  REMIND_NON_RESPONDENTS: 'primary',
+  SUBMIT_RESPONSE: 'outline',
+  CREATE_USER: 'success',
+  UPDATE_USER: 'default',
+  DEACTIVATE_USER: 'destructive',
 };
 
 export default function AuditLogs() {
@@ -40,15 +48,21 @@ export default function AuditLogs() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Audit Logs</h2>
-          <p className="text-sm text-gray-500">Complete trail of all user actions in the system</p>
+          <div className="eyebrow">audit</div>
+          <h2 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
+            Audit Logs
+          </h2>
+          <p className="text-[13px] text-muted-foreground mt-1">
+            Complete trail of all user actions in the system.
+          </p>
         </div>
-        <div className="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-100">
-          <Shield size={14} />
-          <span>Admin Only</span>
-        </div>
+        <Badge variant="primary" className="gap-1.5 shrink-0">
+          <Shield size={12} />
+          <span>Admin only</span>
+        </Badge>
       </div>
 
       <SearchBar
@@ -59,42 +73,62 @@ export default function AuditLogs() {
         className="max-w-sm"
       />
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Timestamp</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Resource</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[180px]">Timestamp</TableHead>
+              <TableHead className="w-[200px]">Action</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead className="w-[120px]">Resource</TableHead>
+              <TableHead>Detail</TableHead>
+              <TableHead className="w-[140px]">IP</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">Loading audit logs...</td></tr>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  Loading audit logs…
+                </TableCell>
+              </TableRow>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No logs found</td></tr>
-            ) : filtered.map(log => (
-              <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-3 text-xs text-gray-500 whitespace-nowrap">
-                  {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
-                </td>
-                <td className="px-6 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACTION_COLORS[log.action] || 'bg-gray-50 text-gray-600'}`}>
-                    {log.action}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm text-gray-600">{log.user_email || <span className="text-gray-300 italic">anonymous</span>}</td>
-                <td className="px-6 py-3 text-sm text-gray-600 capitalize">{log.resource}</td>
-                <td className="px-6 py-3 text-sm text-gray-500 max-w-xs truncate">{log.detail || '—'}</td>
-                <td className="px-6 py-3 text-xs text-gray-400 font-mono">{log.ip_address || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  {search ? 'No logs match your search.' : 'No logs yet.'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map(log => (
+                <TableRow key={log.id}>
+                  <TableCell className="num text-[12px] text-muted-foreground whitespace-nowrap">
+                    {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={ACTION_VARIANT[log.action] ?? 'outline'} className="normal-case tracking-normal text-[10.5px]">
+                      {log.action.replace(/_/g, ' ').toLowerCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-[13px]">
+                    {log.user_email ?? (
+                      <span className="text-muted-foreground italic">anonymous</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-[13px] text-muted-foreground capitalize">
+                    {log.resource}
+                  </TableCell>
+                  <TableCell className="text-[13px] text-muted-foreground max-w-xs truncate">
+                    {log.detail || '—'}
+                  </TableCell>
+                  <TableCell className="num text-[12px] text-muted-foreground">
+                    {log.ip_address || '—'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }

@@ -3,6 +3,9 @@ import { Plus, Trash2, Edit2, Check, X, Building2 } from '../lib/icons';
 import { motion } from 'motion/react';
 import { Department } from '../types';
 import { api } from '../lib/api';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function DepartmentManagement() {
   const [departments, setDepartments] = React.useState<Department[]>([]);
@@ -71,87 +74,105 @@ export default function DepartmentManagement() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-          <Building2 size={20} />
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <Building2 size={18} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">GCGC Departments</h2>
-          <p className="text-sm text-gray-500">Manage the department list available when creating surveys.</p>
+          <div className="eyebrow">directory</div>
+          <h2 className="heading text-[22px] font-semibold text-foreground mt-1 leading-tight">
+            Departments
+          </h2>
+          <p className="text-[13px] text-muted-foreground mt-1">
+            Manage the department list available when creating surveys.
+          </p>
         </div>
       </div>
 
-      <form onSubmit={addDepartment} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-2">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Add a new department (e.g. Legal)"
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={submitting || !newName.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
-        >
-          <Plus size={16} /> Add
-        </button>
-      </form>
+      {/* Add form */}
+      <Card className="p-3">
+        <form onSubmit={addDepartment} className="flex gap-2">
+          <Input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Add a new department (e.g. Legal)"
+            className="flex-1"
+          />
+          <Button type="submit" disabled={submitting || !newName.trim()}>
+            <Plus size={14} /> Add
+          </Button>
+        </form>
+      </Card>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+        <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+          <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+      {/* List */}
+      <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-6 text-center text-gray-400 text-sm">Loading departments…</div>
+          <div className="p-6 text-center text-muted-foreground text-sm">Loading departments…</div>
         ) : departments.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm italic">
+          <div className="p-10 text-center text-muted-foreground text-sm">
             No departments yet. Add your first one above.
           </div>
         ) : (
-          departments.map((d) => (
-            <motion.div
-              key={d.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              {editingId === d.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    autoFocus
-                  />
-                  <button onClick={() => saveEdit(d.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg">
-                    <Check size={16} />
-                  </button>
-                  <button onClick={() => setEditingId(null)} className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg">
-                    <X size={16} />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm text-gray-900 font-medium">{d.name}</span>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => startEdit(d)} className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => removeDepartment(d.id, d.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          ))
+          <div className="divide-y divide-border">
+            {departments.map((d, i) => (
+              <motion.div
+                key={d.id}
+                initial={{ opacity: 0, y: 2 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.015, duration: 0.15 }}
+                className="flex items-center gap-3 px-4 py-2.5"
+              >
+                {editingId === d.id ? (
+                  <>
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && saveEdit(d.id)}
+                      className="flex-1 h-8"
+                      autoFocus
+                    />
+                    <Button size="icon" variant="ghost" onClick={() => saveEdit(d.id)} className="text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50">
+                      <Check size={15} />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => setEditingId(null)}>
+                      <X size={15} />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="num text-[11px] text-muted-foreground w-6 tabular-nums">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="flex-1 text-[14px] text-foreground font-medium">{d.name}</span>
+                    <div className="flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
+                      <Button size="icon" variant="ghost" onClick={() => startEdit(d)} aria-label="Edit">
+                        <Edit2 size={14} />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeDepartment(d.id, d.name)}
+                        aria-label="Delete"
+                        className="hover:text-destructive hover:bg-red-50"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            ))}
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
