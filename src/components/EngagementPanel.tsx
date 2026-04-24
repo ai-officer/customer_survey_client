@@ -91,7 +91,7 @@ export default function EngagementPanel({
           {delta !== null && delta !== 0 && (
             <span
               className="tabular text-xs"
-              style={{ color: delta < 0 ? 'var(--color-accent)' : '#3d6b4a', fontVariantNumeric: 'tabular-nums lining-nums' }}
+              style={{ color: delta < 0 ? 'var(--color-negative)' : 'var(--color-positive)', fontVariantNumeric: 'tabular-nums lining-nums' }}
             >
               {delta < 0 ? '▼' : '▲'} {Math.abs(delta).toFixed(1)}pp vs. prior period
             </span>
@@ -125,40 +125,40 @@ export default function EngagementPanel({
           <div className="px-4 pt-4 pb-2 h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 16, right: 8, left: -12, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="0" stroke="#ebe9e4" vertical={false} />
+                <CartesianGrid strokeDasharray="0" stroke="#eff1f4" vertical={false} />
                 <XAxis
                   dataKey="rating"
-                  axisLine={{ stroke: '#d8d6d1' }}
+                  axisLine={{ stroke: '#e3e5ea' }}
                   tickLine={false}
-                  tick={{ fill: '#6a6965', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
+                  tick={{ fill: '#5b6472', fontSize: 11, fontFamily: 'Geist Mono' }}
                   height={30}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#6a6965', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
+                  tick={{ fill: '#5b6472', fontSize: 11, fontFamily: 'Geist Mono' }}
                   domain={[0, Math.ceil(maxBar * 1.2)]}
                   allowDecimals={false}
                   width={32}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(122, 59, 30, 0.06)' }}
+                  cursor={{ fill: 'rgba(29, 78, 216, 0.06)' }}
                   contentStyle={{
-                    background: '#0f0f0e',
+                    background: '#0b1220',
                     border: 'none',
                     borderRadius: 2,
-                    color: '#f6f5f3',
+                    color: '#f7f8fa',
                     fontSize: 11,
-                    fontFamily: 'IBM Plex Mono',
+                    fontFamily: 'Geist Mono',
                     padding: '6px 10px',
                   }}
-                  labelStyle={{ color: '#a5a39d', textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                  labelStyle={{ color: '#9aa3af', textTransform: 'uppercase', letterSpacing: '0.08em' }}
                 />
-                <Bar dataKey="value" fill="#7a3b1e" barSize={32}>
+                <Bar dataKey="value" fill="#1d4ed8" barSize={32}>
                   <LabelList
                     dataKey="value"
                     position="top"
-                    style={{ fill: '#0f0f0e', fontSize: 11, fontFamily: 'IBM Plex Mono' }}
+                    style={{ fill: '#0b1220', fontSize: 11, fontFamily: 'Geist Mono' }}
                   />
                 </Bar>
               </BarChart>

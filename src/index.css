@@ -1,32 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300..600;1,400&family=IBM+Plex+Mono:ital,wght@0,400..500;1,400&family=IBM+Plex+Serif:ital,wght@0,400..500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-display: "IBM Plex Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
 
-  /* Professional neutral palette, single warm accent */
-  --color-canvas: #f6f5f3;     /* page background */
-  --color-surface: #ffffff;    /* cards, wells */
-  --color-ink: #0f0f0e;        /* primary text — near-black, slight warmth */
-  --color-ink-2: #2c2b28;      /* secondary headings */
-  --color-muted: #6a6965;      /* metadata, labels */
-  --color-line: #d8d6d1;       /* hairlines — solid, visible */
-  --color-line-2: #ebe9e4;     /* softer rule (zebra separator) */
-  --color-accent: #7a3b1e;     /* restrained bronze */
-  --color-accent-soft: #f1e7dc;/* tint wash */
+  /* Cool professional palette — slate neutrals with sapphire accent */
+  --color-canvas: #f7f8fa;         /* cool near-white page background */
+  --color-surface: #ffffff;        /* cards, tables */
+  --color-ink: #0b1220;            /* deep cool near-black */
+  --color-ink-2: #1f2937;          /* slate-800 secondary */
+  --color-muted: #5b6472;          /* metadata, labels */
+  --color-muted-2: #9aa3af;        /* softer captions */
+  --color-line: #e3e5ea;           /* solid hairline */
+  --color-line-2: #eff1f4;         /* softer zebra rule */
+  --color-accent: #1d4ed8;         /* sapphire — primary data accent */
+  --color-accent-2: #1e40af;       /* hover/active darker */
+  --color-accent-soft: #e8eefc;    /* pale tint wash */
 
-  /* Reduced rounding — professional software, not consumer UI */
+  /* Status colors */
+  --color-positive: #0f766e;       /* teal-700 for positive delta */
+  --color-negative: #b91c1c;       /* red-700 for negative delta */
+
   --radius-sm: 2px;
-  --radius-md: 3px;
+  --radius-md: 4px;
 
-  /* Data-scale heatmap ramp (muted, no pastels) */
-  --heat-1: #a44a2e;   /* worst */
-  --heat-2: #c27a4c;
-  --heat-3: #c8a66a;
-  --heat-4: #8f9d5e;
-  --heat-5: #506b3f;   /* best */
+  /* Diverging red-amber-green heatmap ramp (universal data-viz pattern) */
+  --heat-1: #b91c1c;   /* red-700 — worst */
+  --heat-2: #d97706;   /* amber-600 */
+  --heat-3: #ca8a04;   /* yellow-600 */
+  --heat-4: #65a30d;   /* lime-600 */
+  --heat-5: #15803d;   /* green-700 — best */
 }
 
 @layer base {
@@ -51,7 +56,7 @@
 /* Mono labels — uppercase, tracked, small */
 .label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-muted);
@@ -113,7 +118,7 @@
   animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Native inputs — minimal professional style */
+/* Inputs inherit sans for consistency */
 input[type="date"],
 input[type="text"],
 input[type="email"],
