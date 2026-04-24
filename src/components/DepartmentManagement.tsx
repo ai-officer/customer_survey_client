@@ -72,7 +72,7 @@ export default function DepartmentManagement() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
           <Building2 size={20} />
         </div>
         <div>
@@ -81,18 +81,18 @@ export default function DepartmentManagement() {
         </div>
       </div>
 
-      <form onSubmit={addDepartment} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-2">
+      <form onSubmit={addDepartment} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-2">
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Add a new department (e.g. Legal)"
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
           disabled={submitting || !newName.trim()}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
         >
           <Plus size={16} /> Add
         </button>
@@ -104,7 +104,7 @@ export default function DepartmentManagement() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-100">
         {loading ? (
           <div className="p-6 text-center text-gray-400 text-sm">Loading departments…</div>
         ) : departments.length === 0 ? (
@@ -125,7 +125,7 @@ export default function DepartmentManagement() {
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     autoFocus
                   />
                   <button onClick={() => saveEdit(d.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg">

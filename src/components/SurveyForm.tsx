@@ -112,7 +112,7 @@ export default function SurveyForm() {
           <select 
             value={status} 
             onChange={(e) => setStatus(e.target.value as any)}
-            className="bg-white border border-gray-200 rounded-xl px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-white border border-gray-200 rounded-xl px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
@@ -120,7 +120,7 @@ export default function SurveyForm() {
           </select>
           <button 
             onClick={saveSurvey}
-            className="flex items-center px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 font-medium text-xs sm:text-sm"
+            className="flex items-center px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 font-medium text-xs sm:text-sm"
           >
             <Save size={18} className="mr-2" /> Save <span className="hidden sm:inline">Survey</span>
           </button>
@@ -172,7 +172,7 @@ export default function SurveyForm() {
         )}
       </AnimatePresence>
 
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:space-y-6">
+      <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 md:space-y-6">
         <input
           type="text"
           placeholder="Survey Title"
@@ -192,7 +192,7 @@ export default function SurveyForm() {
             <select
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="">— Select a department —</option>
               {departments.map((d) => (
@@ -210,18 +210,18 @@ export default function SurveyForm() {
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
               placeholder="e.g. Acme Corp"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">Start Date (optional)</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">End Date (optional)</label>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
       </div>
@@ -234,7 +234,7 @@ export default function SurveyForm() {
         <Reorder.Group axis="y" values={questions} onReorder={setQuestions} className="space-y-4">
           {questions.map((q) => (
             <Reorder.Item key={q.id} value={q}>
-              <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm group relative">
+              <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm group relative">
                 <div className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hidden md:block">
                   <GripVertical size={20} className="text-gray-300" />
                 </div>
@@ -277,7 +277,7 @@ export default function SurveyForm() {
                       ))}
                       <button 
                         onClick={() => updateQuestion(q.id, { options: [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`] })}
-                        className="text-xs font-medium text-indigo-600 hover:underline ml-6"
+                        className="text-xs font-medium text-blue-600 hover:underline ml-6"
                       >
                         + Add Option
                       </button>
@@ -291,7 +291,7 @@ export default function SurveyForm() {
                           type="checkbox"
                           checked={q.required}
                           onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
-                          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-500 font-medium">Required</span>
                       </label>
@@ -316,10 +316,10 @@ export default function SurveyForm() {
             <button
               key={item.type}
               onClick={() => addQuestion(item.type as QuestionType)}
-              className="flex flex-col items-center justify-center p-4 bg-white border border-dashed border-gray-200 rounded-2xl hover:border-indigo-300 hover:bg-indigo-50/30 transition-all group"
+              className="flex flex-col items-center justify-center p-4 bg-white border border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/30 transition-all group"
             >
-              <Plus size={20} className="text-gray-400 group-hover:text-indigo-500 mb-1" />
-              <span className="text-xs font-medium text-gray-500 group-hover:text-indigo-600">{item.label}</span>
+              <Plus size={20} className="text-gray-400 group-hover:text-blue-500 mb-1" />
+              <span className="text-xs font-medium text-gray-500 group-hover:text-blue-600">{item.label}</span>
             </button>
           ))}
         </div>

@@ -9,7 +9,7 @@ const ROLES: UserRole[] = ['admin', 'manager'];
 const roleBadge = (role: UserRole) => {
   const styles: Record<UserRole, string> = {
     admin: 'bg-red-50 text-red-700 border-red-100',
-    manager: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    manager: 'bg-blue-50 text-blue-700 border-blue-100',
   };
   return (
     <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize', styles[role])}>
@@ -59,7 +59,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">{isEdit ? 'Edit User' : 'Create User'}</h3>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
@@ -74,18 +74,18 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
             </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
             <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
             <select value={role} onChange={e => setRole(e.target.value as UserRole)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm">
               {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
             </select>
           </div>
@@ -105,7 +105,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder={isEdit ? 'Enter new password to reset' : ''}
-                className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               <button
                 type="button"
@@ -123,7 +123,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
               Cancel
             </button>
             <button type="submit" disabled={loading}
-              className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
+              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all text-sm disabled:opacity-50">
               {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create User'}
             </button>
           </div>
@@ -171,14 +171,14 @@ export default function UserManagement() {
         </div>
         <button
           onClick={() => setModalUser(null)}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-200"
         >
           <Plus size={18} className="mr-2" /> Create User
         </button>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
@@ -198,7 +198,7 @@ export default function UserManagement() {
               <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
                       {user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <span className="font-medium text-gray-900">{user.full_name}</span>
@@ -219,7 +219,7 @@ export default function UserManagement() {
                   <div className="flex items-center justify-end space-x-2">
                     <button
                       onClick={() => setModalUser(user)}
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                       title="Edit"
                     >
                       <Edit2 size={16} />

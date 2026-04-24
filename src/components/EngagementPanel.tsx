@@ -82,7 +82,7 @@ export default function EngagementPanel({
       {/* Responses chart + Engagement Score by Drivers — side by side */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
         {/* Responses (rating distribution) */}
-        <div className="xl:col-span-2 bg-card rounded-lg border border-border shadow-[0_1px_0_0_oklch(0.95_0.005_75)] p-5 space-y-3">
+        <div className="xl:col-span-2 bg-card rounded-xl border border-border shadow-card p-5 space-y-3">
           <div>
             <div className="eyebrow">responses</div>
             <h3 className="heading text-[15px] font-semibold text-foreground mt-0.5">Rating distribution</h3>
@@ -129,7 +129,7 @@ export default function EngagementPanel({
         </div>
 
         {/* Engagement Score by Drivers */}
-        <div className="xl:col-span-3 bg-card rounded-lg border border-border shadow-[0_1px_0_0_oklch(0.95_0.005_75)] p-5 space-y-3">
+        <div className="xl:col-span-3 bg-card rounded-xl border border-border shadow-card p-5 space-y-3">
           <div>
             <div className="eyebrow">engagement score by drivers</div>
             <h3 className="heading text-[15px] font-semibold text-foreground mt-0.5">Heatmap by team</h3>

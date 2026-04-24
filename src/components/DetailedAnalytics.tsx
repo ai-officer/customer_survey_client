@@ -101,7 +101,7 @@ export default function DetailedAnalytics() {
       </div>
 
       {/* Filters + Export */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <span className="text-sm font-medium text-gray-600 mr-1">Filters</span>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
         {dateRange.preset !== 'all' && (
@@ -114,7 +114,7 @@ export default function DetailedAnalytics() {
           <span className="text-xs text-gray-400 font-medium">Export:</span>
           {(['csv', 'xlsx', 'pdf'] as const).map(fmt => (
             <button key={fmt} onClick={() => handleExport(fmt)} disabled={exporting}
-              className="flex items-center px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all disabled:opacity-50">
+              className="flex items-center px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all disabled:opacity-50">
               <Download size={13} className="mr-1" /> {fmt.toUpperCase()}
             </button>
           ))}
@@ -123,15 +123,15 @@ export default function DetailedAnalytics() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Users size={20} /></div>
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Users size={20} /></div>
             <span className="text-sm font-medium text-gray-500">Total Responses</span>
           </div>
           <h3 className="text-3xl font-bold text-gray-900">{data.totalResponses}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center space-x-3 mb-4">
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><TrendingUp size={20} /></div>
             <span className="text-sm font-medium text-gray-500">Response Rate</span>
@@ -140,7 +140,7 @@ export default function DetailedAnalytics() {
           <p className="text-xs text-gray-400 mt-2">Based on distributed emails</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center space-x-3 mb-4">
             <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><PieChartIcon size={20} /></div>
             <span className="text-sm font-medium text-gray-500">Completion Rate</span>
@@ -148,7 +148,7 @@ export default function DetailedAnalytics() {
           <h3 className="text-3xl font-bold text-gray-900">{data.completionRate}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center space-x-3 mb-4">
             <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><ThumbsUp size={20} /></div>
             <span className="text-sm font-medium text-gray-500">NPS Score</span>
@@ -167,7 +167,7 @@ export default function DetailedAnalytics() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 mb-6">CSAT Score Over Time</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -182,7 +182,7 @@ export default function DetailedAnalytics() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Common Feedback Themes</h3>
           {data.commonThemes.length > 0 ? (
             <div className="h-64">
@@ -210,7 +210,7 @@ export default function DetailedAnalytics() {
       </div>
 
       {/* Individual Responses */}
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center justify-between mb-6 gap-2">
           <div>
             <h3 className="text-lg font-bold text-gray-900">Individual Responses</h3>
@@ -244,7 +244,7 @@ export default function DetailedAnalytics() {
                     className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-gray-100 text-gray-500' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-600'}`}>
                         {r.isAnonymous ? <EyeOff size={16} /> : <UserRound size={16} />}
                       </div>
                       <div className="min-w-0">
@@ -271,7 +271,7 @@ export default function DetailedAnalytics() {
                           val === undefined || val === null || val === ''
                             ? <span className="text-gray-400 italic">No answer</span>
                             : typeof val === 'number'
-                            ? <span className="font-semibold text-indigo-600">{val} / 5</span>
+                            ? <span className="font-semibold text-blue-600">{val} / 5</span>
                             : String(val);
                         return (
                           <div key={q.id} className="text-sm">
@@ -290,7 +290,7 @@ export default function DetailedAnalytics() {
       </div>
 
       {/* Open-ended responses */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-gray-900">Open-Ended Responses</h3>
           <span className="text-sm text-gray-400">{data.openEndedResponses.length} responses</span>

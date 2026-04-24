@@ -100,7 +100,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full bg-white p-12 rounded-3xl shadow-xl shadow-indigo-100 text-center space-y-6"
+        className="max-w-md w-full bg-white p-12 rounded-3xl shadow-xl shadow-blue-100 text-center space-y-6"
       >
         <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 size={40} />
@@ -111,7 +111,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
         </p>
         <button 
           onClick={() => window.location.reload()}
-          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all"
+          className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all"
         >
           Submit another response
         </button>
@@ -122,13 +122,13 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
   return (
     <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-4 md:px-6">
       <div className="max-w-2xl mx-auto space-y-6 md:space-y-8">
-        <div className="bg-white p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 space-y-3 md:space-y-4">
+        <div className="bg-white p-6 md:p-10 rounded-xl md:rounded-3xl shadow-sm border border-gray-100 space-y-3 md:space-y-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{survey.title}</h1>
           <p className="text-sm md:text-base text-gray-500 leading-relaxed">{survey.description}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 space-y-4">
+          <div className="bg-white p-6 md:p-8 rounded-xl md:rounded-3xl shadow-sm border border-gray-100 space-y-4">
             <div className="space-y-1">
               <label className="text-base md:text-lg font-bold text-gray-900 flex items-start">
                 Your Name
@@ -145,10 +145,10 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
               disabled={isAnonymous}
               placeholder={isAnonymous ? "You are submitting anonymously" : "Enter your full name"}
               className={cn(
-                "w-full p-3 md:p-4 border rounded-xl md:rounded-2xl outline-none transition-all text-sm md:text-base",
+                "w-full p-3 md:p-4 border rounded-xl md:rounded-xl outline-none transition-all text-sm md:text-base",
                 isAnonymous
                   ? "bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-50 border-gray-100 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                  : "bg-gray-50 border-gray-100 focus:ring-2 focus:ring-blue-500 focus:bg-white"
               )}
             />
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -156,7 +156,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
                 type="checkbox"
                 checked={isAnonymous}
                 onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="text-sm text-gray-600 font-medium">Submit anonymously</span>
             </label>
@@ -168,7 +168,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
               key={q.id}
-              className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 space-y-4 md:space-y-6"
+              className="bg-white p-6 md:p-8 rounded-xl md:rounded-3xl shadow-sm border border-gray-100 space-y-4 md:space-y-6"
             >
               <div className="space-y-2">
                 <label className="text-base md:text-lg font-bold text-gray-900 flex items-start">
@@ -183,7 +183,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
                   value={answers[q.id] || ''}
                   onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
                   placeholder="Your answer..."
-                  className="w-full p-3 md:p-4 bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all resize-none h-32 text-sm md:text-base"
+                  className="w-full p-3 md:p-4 bg-gray-50 border border-gray-100 rounded-xl md:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all resize-none h-32 text-sm md:text-base"
                 />
               )}
 
@@ -196,10 +196,10 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
                         type="button"
                         onClick={() => setAnswers({ ...answers, [q.id]: val })}
                         className={cn(
-                          "aspect-square rounded-xl md:rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all border",
+                          "aspect-square rounded-xl md:rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all border",
                           answers[q.id] === val
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200"
-                            : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-white hover:border-indigo-200 hover:text-indigo-600"
+                            ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200"
+                            : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-white hover:border-blue-200 hover:text-blue-600"
                         )}
                         aria-label={`Rate ${val} out of 5`}
                       >
@@ -227,16 +227,16 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
                       type="button"
                       onClick={() => setAnswers({ ...answers, [q.id]: opt })}
                       className={cn(
-                        "w-full p-3 md:p-4 text-left rounded-xl md:rounded-2xl border transition-all flex items-center justify-between group text-sm md:text-base",
+                        "w-full p-3 md:p-4 text-left rounded-xl md:rounded-xl border transition-all flex items-center justify-between group text-sm md:text-base",
                         answers[q.id] === opt
-                          ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-medium"
+                          ? "bg-blue-50 border-blue-200 text-blue-700 font-medium"
                           : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
                       )}
                     >
                       {opt}
                       <div className={cn(
                         "w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                        answers[q.id] === opt ? "border-indigo-600 bg-indigo-600" : "border-gray-200"
+                        answers[q.id] === opt ? "border-blue-600 bg-blue-600" : "border-gray-200"
                       )}>
                         {answers[q.id] === opt && <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white" />}
                       </div>
@@ -253,9 +253,9 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
                       type="button"
                       onClick={() => setAnswers({ ...answers, [q.id]: val })}
                       className={cn(
-                        "flex-1 p-3 md:p-4 rounded-xl md:rounded-2xl border transition-all font-medium text-sm md:text-base",
+                        "flex-1 p-3 md:p-4 rounded-xl md:rounded-xl border transition-all font-medium text-sm md:text-base",
                         answers[q.id] === val
-                          ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200"
+                          ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200"
                           : "bg-white border-gray-100 text-gray-500 hover:bg-gray-50"
                       )}
                     >
@@ -268,7 +268,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
           ))}
 
           {submitError && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-medium">
+            <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">
               {submitError}
             </div>
           )}
@@ -276,8 +276,8 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
           <button
             type="submit"
             className={cn(
-              "w-full py-3 md:py-4 text-white rounded-2xl md:rounded-3xl font-bold text-base md:text-lg transition-all shadow-xl flex items-center justify-center space-x-2",
-              isPreview ? "bg-red-600 hover:bg-red-700 shadow-red-100" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
+              "w-full py-3 md:py-4 text-white rounded-xl md:rounded-3xl font-bold text-base md:text-lg transition-all shadow-xl flex items-center justify-center space-x-2",
+              isPreview ? "bg-red-600 hover:bg-red-700 shadow-red-100" : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
             )}
           >
             {isPreview ? (

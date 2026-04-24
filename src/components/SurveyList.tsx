@@ -55,7 +55,7 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5">
+        className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl space-y-5">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-900">Distribute Survey</h3>
@@ -71,7 +71,7 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
             </div>
             <p className="font-semibold text-gray-900">Emails queued successfully!</p>
             <p className="text-sm text-gray-500">Survey links are being sent to {emails.length} recipients.</p>
-            <button onClick={onClose} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">Done</button>
+            <button onClick={onClose} className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">Done</button>
           </div>
         ) : (
           <>
@@ -82,8 +82,8 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
                 <input type="text" value={emailInput} onChange={e => setEmailInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addEmails()}
                   placeholder="email@example.com, another@example.com"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button onClick={addEmails} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700">Add</button>
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                <button onClick={addEmails} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">Add</button>
               </div>
               <p className="text-xs text-gray-400 mt-1">Separate multiple emails with commas or press Enter</p>
             </div>
@@ -102,7 +102,7 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">Cancel</button>
               <button onClick={handleSend} disabled={sending || emails.length === 0}
-                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
+                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all text-sm disabled:opacity-50">
                 {sending ? 'Sending...' : `Send to ${emails.length} recipient${emails.length !== 1 ? 's' : ''}`}
               </button>
             </div>
@@ -381,7 +381,7 @@ export default function SurveyList() {
           className={cn(
             'inline-flex items-center gap-1.5 transition-colors',
             align === 'right' && 'flex-row-reverse',
-            active ? 'text-indigo-600' : 'hover:text-gray-700'
+            active ? 'text-blue-600' : 'hover:text-gray-700'
           )}
         >
           <span>{label}</span>
@@ -408,7 +408,7 @@ export default function SurveyList() {
         />
         <Link
           to="/surveys/new"
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-200"
         >
           <Plus size={18} className="mr-2" /> Create Survey
         </Link>
@@ -426,7 +426,7 @@ export default function SurveyList() {
               className={cn(
                 'pb-3 px-3 -mb-px border-b-2 text-sm transition-colors flex items-center gap-2',
                 active
-                  ? 'border-indigo-600 text-indigo-700 font-semibold'
+                  ? 'border-blue-600 text-blue-700 font-semibold'
                   : 'border-transparent text-gray-500 hover:text-gray-900'
               )}
             >
@@ -434,7 +434,7 @@ export default function SurveyList() {
               <span
                 className={cn(
                   'px-1.5 py-0.5 rounded-md text-[11px] font-medium tabular-nums',
-                  active ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                  active ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
                 )}
               >
                 {tabCounts[tab.key]}
@@ -450,7 +450,7 @@ export default function SurveyList() {
       </div>
 
       {/* Table card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block">
           <table className="w-full text-left border-collapse">
@@ -486,9 +486,9 @@ export default function SurveyList() {
                               : 'No archived surveys'}
                       </p>
                       {searchQuery ? (
-                        <button onClick={() => setSearchQuery('')} className="text-indigo-600 text-sm mt-2 hover:underline">Clear search</button>
+                        <button onClick={() => setSearchQuery('')} className="text-blue-600 text-sm mt-2 hover:underline">Clear search</button>
                       ) : activeTab !== 'archived' && (
-                        <Link to="/surveys/new" className="text-indigo-600 text-sm mt-2 hover:underline">Create a survey</Link>
+                        <Link to="/surveys/new" className="text-blue-600 text-sm mt-2 hover:underline">Create a survey</Link>
                       )}
                     </div>
                   </td>
@@ -501,7 +501,7 @@ export default function SurveyList() {
                       <td className="px-6 py-4 max-w-md">
                         <Link
                           to={`/analytics/${survey.id}`}
-                          className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors block"
+                          className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block"
                         >
                           {survey.title || 'Untitled'}
                         </Link>
@@ -542,7 +542,7 @@ export default function SurveyList() {
                           {survey.status === 'published' && canEdit && (
                             <button
                               onClick={() => setDistributeSurvey(survey)}
-                              className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+                              className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                             >
                               <Mail size={14} className="mr-1.5" /> Distribute
                             </button>
@@ -550,7 +550,7 @@ export default function SurveyList() {
                           {survey.status === 'draft' && canEdit && (
                             <Link
                               to={`/surveys/edit/${survey.id}`}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:border-indigo-300 hover:text-indigo-700 transition-colors"
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:border-blue-300 hover:text-blue-700 transition-colors"
                             >
                               <Edit2 size={14} className="mr-1.5" /> Edit
                             </Link>
@@ -630,7 +630,7 @@ export default function SurveyList() {
                     {survey.status === 'published' && canEdit && (
                       <button
                         onClick={() => setDistributeSurvey(survey)}
-                        className="inline-flex items-center px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+                        className="inline-flex items-center px-2.5 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg"
                       >
                         <Mail size={14} className="mr-1.5" /> Distribute
                       </button>
@@ -757,7 +757,7 @@ export default function SurveyList() {
                   <p className="text-sm text-gray-500 mt-1">Scan to take the survey</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 inline-block mx-auto">
+                <div className="bg-white p-4 rounded-xl border border-gray-100 inline-block mx-auto">
                   <QRCodeSVG
                     id={`qr-code-${qrSurvey.id}`}
                     value={`${window.location.origin}/s/${qrSurvey.id}`}
@@ -770,7 +770,7 @@ export default function SurveyList() {
                 <div className="flex flex-col space-y-3">
                   <button
                     onClick={() => downloadQR(qrSurvey.id, qrSurvey.title)}
-                    className="flex items-center justify-center w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                    className="flex items-center justify-center w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
                   >
                     <Download size={18} className="mr-2" /> Download QR Code
                   </button>

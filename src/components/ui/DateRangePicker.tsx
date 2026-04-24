@@ -136,11 +136,11 @@ export function DateRangePicker({ value, onChange, className, align = 'left' }: 
           'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all',
           'border bg-white',
           open
-            ? 'border-indigo-300 ring-2 ring-indigo-100 text-indigo-700'
+            ? 'border-blue-300 ring-2 ring-blue-100 text-blue-700'
             : 'border-gray-200 text-gray-700 hover:border-gray-300'
         )}
       >
-        <Calendar size={14} className={open ? 'text-indigo-500' : 'text-gray-400'} />
+        <Calendar size={14} className={open ? 'text-blue-500' : 'text-gray-400'} />
         <span className="font-medium whitespace-nowrap">{trigger}</span>
         <ChevronDown size={14} className={cn('text-gray-400 transition-transform', open && 'rotate-180')} />
       </button>
@@ -164,12 +164,12 @@ export function DateRangePicker({ value, onChange, className, align = 'left' }: 
                     className={cn(
                       'w-full text-left px-4 py-1.5 text-sm flex items-center justify-between transition-colors',
                       active
-                        ? 'bg-indigo-50 text-indigo-700 font-medium'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-700 hover:bg-gray-50'
                     )}
                   >
                     <span>{p.label}</span>
-                    {active && <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" aria-hidden />}
+                    {active && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" aria-hidden />}
                   </button>
                 </li>
               );
@@ -184,7 +184,7 @@ export function DateRangePicker({ value, onChange, className, align = 'left' }: 
                   type="date"
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -193,7 +193,7 @@ export function DateRangePicker({ value, onChange, className, align = 'left' }: 
                   type="date"
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div className="flex gap-2 pt-1">
@@ -207,7 +207,7 @@ export function DateRangePicker({ value, onChange, className, align = 'left' }: 
                 <button
                   type="button"
                   onClick={applyCustom}
-                  className="flex-1 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-md hover:bg-indigo-700 transition-colors"
+                  className="flex-1 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition-colors"
                 >
                   Apply
                 </button>

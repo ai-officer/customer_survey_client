@@ -7,7 +7,7 @@ import { SearchBar } from './ui/SearchBar';
 
 const ACTION_COLORS: Record<string, string> = {
   LOGIN: 'bg-blue-50 text-blue-700',
-  REGISTER: 'bg-indigo-50 text-indigo-700',
+  REGISTER: 'bg-blue-50 text-blue-700',
   CREATE_SURVEY: 'bg-emerald-50 text-emerald-700',
   UPDATE_SURVEY: 'bg-amber-50 text-amber-700',
   DELETE_SURVEY: 'bg-red-50 text-red-700',
@@ -59,7 +59,7 @@ export default function AuditLogs() {
         className="max-w-sm"
       />
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
