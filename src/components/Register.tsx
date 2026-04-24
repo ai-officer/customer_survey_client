@@ -6,7 +6,7 @@ import { api } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BrandLockup } from '@/components/ui/brand-mark';
+import { AuthHero, AuthHeroMobile } from '@/components/ui/auth-hero';
 
 export default function Register() {
   const { user } = useAuth();
@@ -43,34 +43,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
-      {/* Left: hero on dark surface */}
-      <aside className="sidebar-dark relative hidden md:flex flex-col justify-between p-12 overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 20% 30%, oklch(0.78 0.13 175) 0%, transparent 50%),' +
-              'radial-gradient(circle at 80% 70%, oklch(0.78 0.13 175) 0%, transparent 45%)',
-          }}
-          aria-hidden
-        />
-        <BrandLockup inverted size={40} />
-
-        <div className="relative max-w-md">
-          <div className="eyebrow mb-6">request access</div>
-          <div className="display text-[42px] text-[color:var(--sidebar-fg)] tracking-tight">
-            A careful voice, amplified.
-          </div>
-          <p className="mt-4 text-[17px] leading-relaxed text-[color:var(--sidebar-muted-fg)]">
-            Accounts are reviewed by an administrator. Once approved, you'll receive a confirmation email with sign-in details.
-          </p>
-        </div>
-
-        <div className="relative flex items-end justify-between gap-6">
-          <div className="eyebrow">© {new Date().getFullYear()} · Global Officium Ltd.</div>
-          <div className="eyebrow">Manila · Philippines</div>
-        </div>
-      </aside>
+      <AuthHero />
 
       {/* Right: form */}
       <section className="flex items-center justify-center p-6 md:p-12 bg-background">
@@ -92,7 +65,7 @@ export default function Register() {
           </div>
         ) : (
           <div className="w-full max-w-sm space-y-7 py-6">
-            <div className="md:hidden"><BrandLockup size={36} /></div>
+            <AuthHeroMobile />
 
             <div className="space-y-2">
               <div className="eyebrow">request access</div>

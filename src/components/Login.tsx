@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BrandLockup } from '@/components/ui/brand-mark';
+import { AuthHero, AuthHeroMobile } from '@/components/ui/auth-hero';
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -36,43 +36,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
-      {/* Left: editorial hero on dark surface */}
-      <aside className="sidebar-dark relative hidden md:flex flex-col justify-between p-12 overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 20% 30%, oklch(0.78 0.13 175) 0%, transparent 50%),' +
-              'radial-gradient(circle at 80% 70%, oklch(0.78 0.13 175) 0%, transparent 45%)',
-          }}
-          aria-hidden
-        />
-        <BrandLockup inverted size={40} />
-
-        <div className="relative max-w-md">
-          <div className="eyebrow mb-6">a customer survey platform</div>
-          <div className="display text-[42px] text-[color:var(--sidebar-fg)] tracking-tight">
-            Measure what matters.
-          </div>
-          <p className="mt-4 text-[17px] leading-relaxed text-[color:var(--sidebar-muted-fg)]">
-            Precise feedback, considered decisions, a record of voice across every engagement.
-          </p>
-        </div>
-
-        <div className="relative flex items-end justify-between gap-6">
-          <div className="eyebrow">
-            © {new Date().getFullYear()} · Global Officium Ltd.
-          </div>
-          <div className="eyebrow">Manila · Philippines</div>
-        </div>
-      </aside>
+      <AuthHero />
 
       {/* Right: auth form on cream canvas */}
       <section className="flex items-center justify-center p-6 md:p-12 bg-background">
         <div className="w-full max-w-sm space-y-7">
-          <div className="md:hidden">
-            <BrandLockup size={36} />
-          </div>
+          <AuthHeroMobile />
 
           <div className="space-y-2">
             <div className="eyebrow">sign in</div>
