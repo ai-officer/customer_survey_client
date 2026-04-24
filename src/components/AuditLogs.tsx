@@ -1,8 +1,9 @@
 import React from 'react';
-import { Shield, Search } from '../lib/icons';
+import { Shield } from '../lib/icons';
 import { format } from 'date-fns';
 import { AuditLog } from '../types';
 import { api } from '../lib/api';
+import { SearchBar } from './ui/SearchBar';
 
 const ACTION_COLORS: Record<string, string> = {
   LOGIN: 'bg-blue-50 text-blue-700',
@@ -50,16 +51,13 @@ export default function AuditLogs() {
         </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-        <input
-          type="text"
-          placeholder="Search by action, user, or detail..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
-        />
-      </div>
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by action, user, or detail…"
+        shortcut="⌘K"
+        className="max-w-sm"
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-left">

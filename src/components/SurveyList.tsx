@@ -1,5 +1,6 @@
 import React from 'react';
-import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from '../lib/icons';
+import { Plus, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from '../lib/icons';
+import { SearchBar } from './ui/SearchBar';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Survey } from '../types';
@@ -215,16 +216,13 @@ export default function SurveyList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search by title, description, or creator..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-          />
-        </div>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search surveys by title, description, or creator…"
+          shortcut="⌘K"
+          className="flex-1 max-w-md"
+        />
         <div className="flex items-center space-x-3">
           <select
             value={statusFilter}

@@ -1,12 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, Calendar, UserRound, EyeOff, ChevronDown, ChevronUp } from '../lib/icons';
+import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, UserRound, EyeOff, ChevronDown, ChevronUp } from '../lib/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { api } from '../lib/api';
 import { Survey, SurveyResponse } from '../types';
 import EngagementPanel from './EngagementPanel';
+import { DateRangePicker, DateRange } from './ui/DateRangePicker';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -15,8 +16,7 @@ export default function DetailedAnalytics() {
   const navigate = useNavigate();
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
-  const [startDate, setStartDate] = React.useState('');
-  const [endDate, setEndDate] = React.useState('');
+  const [dateRange, setDateRange] = React.useState<DateRange>({ startDate: '', endDate: '', preset: 'all' });
   const [exporting, setExporting] = React.useState(false);
   const [responses, setResponses] = React.useState<SurveyResponse[]>([]);
   const [surveyMeta, setSurveyMeta] = React.useState<Survey | null>(null);
@@ -27,8 +27,8 @@ export default function DetailedAnalytics() {
   const fetchData = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (startDate) params.append('start_date', new Date(startDate).toISOString());
-    if (endDate) params.append('end_date', new Date(endDate).toISOString());
+    if (dateRange.startDate) params.append('start_date', new Date(dateRange.startDate).toISOString());
+    if (dateRange.endDate) params.append('end_date', new Date(dateRange.endDate + 'T23:59:59').toISOString());
     const qs = params.toString() ? `?${params}` : '';
 
     // Per-survey analytics (custom shape)
@@ -55,7 +55,7 @@ export default function DetailedAnalytics() {
       .catch((err: any) => setResponsesError(err?.message || 'Unable to load responses'));
   };
 
-  React.useEffect(() => { fetchData(); fetchResponses(); }, [id, startDate, endDate]);
+  React.useEffect(() => { fetchData(); fetchResponses(); }, [id, dateRange.startDate, dateRange.endDate]);
 
   const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
     setExporting(true);
@@ -102,16 +102,12 @@ export default function DetailedAnalytics() {
 
       {/* Filters + Export */}
       <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <Calendar size={16} className="text-gray-400" />
-        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-        <span className="text-gray-400 text-sm">to</span>
-        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
-        {(startDate || endDate) && (
-          <button onClick={() => { setStartDate(''); setEndDate(''); }}
+        <span className="text-sm font-medium text-gray-600 mr-1">Filters</span>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
+        {dateRange.preset !== 'all' && (
+          <button onClick={() => setDateRange({ startDate: '', endDate: '', preset: 'all' })}
             className="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 transition-all">
-            Clear
+            Reset
           </button>
         )}
         <div className="ml-auto flex items-center gap-2">
