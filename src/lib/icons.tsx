@@ -16,6 +16,7 @@ import {
   CheckCircleIcon,
   CheckIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
   ClipboardDocumentCheckIcon,
@@ -70,6 +71,7 @@ export const Calendar = make(CalendarIcon);
 export const Check = make(CheckIcon);
 export const CheckCircle2 = make(CheckCircleIcon);
 export const ChevronDown = make(ChevronDownIcon);
+export const ChevronLeft = make(ChevronLeftIcon);
 export const ChevronRight = make(ChevronRightIcon);
 export const ChevronUp = make(ChevronUpIcon);
 export const ClipboardCheck = make(ClipboardDocumentCheckIcon);

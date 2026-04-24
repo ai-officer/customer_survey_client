@@ -13,6 +13,7 @@ import {
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
+import { Pagination, paginate } from '@/components/ui/pagination';
 import type { VariantProps } from 'class-variance-authority';
 
 type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
@@ -47,6 +48,8 @@ export default function AuditLogs() {
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState<CategoryFilter>('all');
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(25);
 
   React.useEffect(() => {
     api.get<AuditLog[]>('/audit-logs?limit=200')
@@ -70,6 +73,11 @@ export default function AuditLogs() {
 
   const hasFilter = search || category !== 'all';
   const clearFilters = () => { setSearch(''); setCategory('all'); };
+
+  // Reset to first page whenever filter / page size changes
+  React.useEffect(() => { setPage(1); }, [search, category, pageSize]);
+
+  const pageItems = paginate(filtered, page, pageSize);
 
   // Summary stats
   const destructiveCount = logs.filter(l => CATEGORY_MATCH.destructive(l.action)).length;
@@ -178,7 +186,7 @@ export default function AuditLogs() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map(log => (
+              pageItems.map(log => (
                 <TableRow key={log.id}>
                   <TableCell className="num text-[12px] text-muted-foreground whitespace-nowrap">
                     {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
@@ -210,6 +218,15 @@ export default function AuditLogs() {
             )}
           </TableBody>
         </Table>
+        {!loading && filtered.length > 0 && (
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
       </Card>
     </div>
   );

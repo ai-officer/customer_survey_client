@@ -15,6 +15,7 @@ import {
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
+import { Pagination, paginate } from '@/components/ui/pagination';
 import { SearchBar } from './ui/SearchBar';
 
 const ROLES: UserRole[] = ['admin', 'manager'];
@@ -203,6 +204,10 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = React.useState<RoleFilter>('all');
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all');
 
+  // Pagination
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+
   const fetchUsers = () => {
     setLoading(true);
     api.get<User[]>('/users')
@@ -246,6 +251,9 @@ export default function UserManagement() {
     setRoleFilter('all');
     setStatusFilter('all');
   };
+
+  React.useEffect(() => { setPage(1); }, [search, roleFilter, statusFilter, pageSize]);
+  const pageItems = paginate(filtered, page, pageSize);
 
   const counts = {
     all: users.length,
@@ -361,7 +369,7 @@ export default function UserManagement() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map(user => (
+              pageItems.map(user => (
                 <TableRow key={user.id}>
                   <TableCell className="py-3">
                     <div className="flex items-center gap-3">
@@ -414,6 +422,15 @@ export default function UserManagement() {
             )}
           </TableBody>
         </Table>
+        {!loading && filtered.length > 0 && (
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
       </Card>
 
       {modalUser !== undefined && (

@@ -25,6 +25,7 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
+import { Pagination, paginate } from '@/components/ui/pagination';
 
 type Tab = 'active' | 'draft' | 'archived';
 type SortKey = 'title' | 'createdAt' | 'responses';
@@ -330,6 +331,8 @@ export default function SurveyList() {
   const [deptFilter, setDeptFilter] = React.useState<string>('all');
   const [createdFilter, setCreatedFilter] = React.useState<CreatedFilter>('any');
   const [allDepartments, setAllDepartments] = React.useState<Department[]>([]);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [qrSurvey, setQrSurvey] = React.useState<Survey | null>(null);
   const [previewSurvey, setPreviewSurvey] = React.useState<Survey | null>(null);
@@ -396,6 +399,12 @@ export default function SurveyList() {
     setDeptFilter('all');
     setCreatedFilter('any');
   };
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [activeTab, searchQuery, deptFilter, createdFilter, pageSize]);
+
+  const pageItems = paginate<Survey>(filteredSurveys, page, pageSize);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
@@ -657,7 +666,7 @@ export default function SurveyList() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSurveys.map(survey => {
+              pageItems.map(survey => {
                 const responses = survey.responseCount ?? 0;
                 return (
                   <TableRow key={survey.id}>
@@ -750,6 +759,15 @@ export default function SurveyList() {
             )}
           </TableBody>
         </Table>
+        {!loading && filteredSurveys.length > 0 && (
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={filteredSurveys.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
       </Card>
 
       {/* Mobile Card View */}
@@ -763,7 +781,7 @@ export default function SurveyList() {
           </div>
         ) : (
           <ul className="divide-y divide-border">
-            {filteredSurveys.map(survey => {
+            {pageItems.map(survey => {
               const responses = survey.responseCount ?? 0;
               return (
                 <li key={survey.id} className="p-4 space-y-3">
@@ -822,6 +840,14 @@ export default function SurveyList() {
               );
             })}
           </ul>
+        )}
+        {!loading && filteredSurveys.length > 0 && (
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={filteredSurveys.length}
+            onPageChange={setPage}
+          />
         )}
       </Card>
 
