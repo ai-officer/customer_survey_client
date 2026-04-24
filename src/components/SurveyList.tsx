@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import {
   Plus, Eye, Edit2, Trash2, CheckCircle2, AlertCircle, BarChart3, Copy, QrCode, X,
   Download, CopyPlus, Mail, Bell, ChevronDown, ChevronUp, Archive,
@@ -129,23 +130,64 @@ function OverflowMenu({
   survey, canEdit, onPreview, onCopyLink, onQR, onDuplicate, onReminders, onEdit, onDelete, copied,
 }: OverflowMenuProps) {
   const [open, setOpen] = React.useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties | null>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  // Position the floating menu in viewport coordinates so it escapes any
+  // ancestor's overflow:hidden (the surveys card clips otherwise).
+  const positionMenu = React.useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const MENU_WIDTH = 208; // matches w-52
+    const MENU_HEIGHT_ESTIMATE = 360;
+    const GAP = 4;
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const goUp = spaceBelow < MENU_HEIGHT_ESTIMATE && spaceAbove > spaceBelow;
+
+    const style: React.CSSProperties = {
+      position: 'fixed',
+      width: MENU_WIDTH,
+      right: Math.max(8, window.innerWidth - rect.right),
+      zIndex: 60,
+    };
+    if (goUp) {
+      style.bottom = window.innerHeight - rect.top + GAP;
+    } else {
+      style.top = rect.bottom + GAP;
+    }
+    setMenuStyle(style);
+  }, []);
 
   React.useEffect(() => {
     if (!open) return;
+    positionMenu();
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
+    const reposition = () => positionMenu();
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+    };
+  }, [open, positionMenu]);
 
   const item = "w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors";
   const danger = "w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors";
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-label="More actions"
@@ -154,10 +196,12 @@ function OverflowMenu({
       >
         <span className="block leading-none text-xl select-none" aria-hidden>⋯</span>
       </button>
-      {open && (
+      {open && menuStyle && createPortal(
         <div
+          ref={menuRef}
           role="menu"
-          className="absolute right-0 top-full mt-1 z-30 w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden py-1.5"
+          style={menuStyle}
+          className="bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden py-1.5"
         >
           <button onClick={() => { setOpen(false); onPreview(); }} className={item}>
             <Eye size={14} className="text-gray-400" /> Preview
@@ -198,9 +242,10 @@ function OverflowMenu({
               </button>
             </>
           )}
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
 
