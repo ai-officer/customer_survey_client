@@ -7,23 +7,37 @@ import { api } from '../lib/api';
 import { Survey } from '../types';
 import EngagementPanel from './EngagementPanel';
 import { DateRangePicker, DateRange } from './ui/DateRangePicker';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
 
 const StatCard = ({ icon: Icon, label, value, trend, subtitle }: any) => (
-  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2 text-gray-500">
-        {Icon && <Icon size={16} />}
-        <p className="text-sm font-medium">{label}</p>
+  <Card className="p-5">
+    <div className="flex items-start justify-between">
+      <div className="eyebrow flex items-center gap-1.5">
+        {Icon && <Icon size={12} className="opacity-60" />}
+        <span>{label}</span>
       </div>
       {trend !== undefined && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-50 text-green-600' : trend < 0 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-500'}`}>
+        <span className={`num text-[10.5px] font-medium px-1.5 py-0.5 rounded-sm ${
+          trend > 0 ? 'bg-emerald-50 text-emerald-700'
+            : trend < 0 ? 'bg-red-50 text-red-700'
+            : 'bg-secondary text-muted-foreground'
+        }`}>
           {trend > 0 ? '+' : ''}{trend}%
         </span>
       )}
     </div>
-    <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
-    {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
-  </div>
+    <div className="num mt-4 text-[30px] font-semibold leading-none text-foreground">
+      {value}
+    </div>
+    {subtitle && (
+      <p className="text-[11.5px] text-muted-foreground mt-2">{subtitle}</p>
+    )}
+  </Card>
 );
 
 function ResponseTrend({ data }: { data: Array<{ name: string; responses: number }> }) {
@@ -32,64 +46,73 @@ function ResponseTrend({ data }: { data: Array<{ name: string; responses: number
   const peakDay = data.find((d) => d.responses === peakValue);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full flex flex-col">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-baseline justify-between">
-        <h3 className="text-lg font-bold text-gray-900">Response Trend</h3>
-        <span className="text-xs text-gray-400 font-medium">Last 7 days</span>
+    <Card className="w-full flex flex-col">
+      <CardHeader>
+        <div>
+          <div className="eyebrow mb-1">response trend</div>
+          <CardTitle>Last 7 days</CardTitle>
+        </div>
+        <Badge variant="outline"><span className="num">{total}</span>&nbsp;total</Badge>
+      </CardHeader>
+
+      <div className="grid grid-cols-3 divide-x divide-border">
+        <div className="px-5 py-4">
+          <div className="eyebrow">total</div>
+          <div className="num mt-2 text-[22px] font-semibold leading-none">{total}</div>
+          <p className="text-[11px] text-muted-foreground mt-2">responses</p>
+        </div>
+        <div className="px-5 py-4">
+          <div className="eyebrow">avg / day</div>
+          <div className="num mt-2 text-[22px] font-semibold leading-none">{(total / 7).toFixed(1)}</div>
+          <p className="text-[11px] text-muted-foreground mt-2">over 7 d</p>
+        </div>
+        <div className="px-5 py-4">
+          <div className="eyebrow">peak day</div>
+          <div className="num mt-2 text-[22px] font-semibold leading-none">{peakValue}</div>
+          <p className="text-[11px] text-muted-foreground mt-2">on {peakDay?.name ?? '—'}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 divide-x divide-gray-100">
-        <div className="p-5">
-          <p className="text-xs text-gray-500 font-medium">Total</p>
-          <h4 className="text-2xl font-bold text-gray-900 mt-1">{total}</h4>
-          <p className="text-xs text-gray-400 mt-1">responses</p>
-        </div>
-        <div className="p-5">
-          <p className="text-xs text-gray-500 font-medium">Avg / day</p>
-          <h4 className="text-2xl font-bold text-gray-900 mt-1">{(total / 7).toFixed(1)}</h4>
-          <p className="text-xs text-gray-400 mt-1">over 7 d</p>
-        </div>
-        <div className="p-5">
-          <p className="text-xs text-gray-500 font-medium">Peak day</p>
-          <h4 className="text-2xl font-bold text-gray-900 mt-1">{peakValue}</h4>
-          <p className="text-xs text-gray-400 mt-1">on {peakDay?.name ?? '—'}</p>
-        </div>
-      </div>
-
-      <div className="px-3 pt-3 pb-2 flex-1 min-h-[10rem] border-t border-gray-100">
+      <div className="px-3 pt-3 pb-2 flex-1 min-h-[10rem] border-t border-border">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 6 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.18} />
-                <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.0} />
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.22} />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9ca3af', fontSize: 11 }}
-              height={24}
+              tick={{ fill: '#78716c', fontSize: 10, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
+              height={22}
             />
             <YAxis hide domain={[0, 'dataMax + 1']} />
             <Tooltip
-              cursor={{ stroke: '#4f46e5', strokeOpacity: 0.25, strokeDasharray: '2 4' }}
-              contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+              cursor={{ stroke: '#f59e0b', strokeOpacity: 0.4, strokeDasharray: '2 4' }}
+              contentStyle={{
+                borderRadius: 8,
+                border: '1px solid #e7e5e4',
+                boxShadow: '0 4px 12px -3px rgba(0,0,0,0.08)',
+                fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+                fontSize: 11,
+              }}
             />
             <Area
               type="monotone"
               dataKey="responses"
-              stroke="#4f46e5"
-              strokeWidth={2}
+              stroke="#f59e0b"
+              strokeWidth={1.75}
               fill="url(#trendFill)"
-              dot={{ r: 3, fill: '#4f46e5', strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: '#4f46e5', stroke: '#ffffff', strokeWidth: 2 }}
+              dot={{ r: 2.5, fill: '#f59e0b', strokeWidth: 0 }}
+              activeDot={{ r: 4.5, fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -98,34 +121,42 @@ function TopSurveys({ data }: { data: Array<{ name: string; responses: number }>
   const max = Math.max(1, ...sorted.map((d) => d.responses));
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full flex flex-col">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-baseline justify-between">
-        <h3 className="text-lg font-bold text-gray-900">Top Surveys</h3>
-        <span className="text-xs text-gray-400 font-medium">By response volume</span>
-      </div>
+    <Card className="w-full flex flex-col">
+      <CardHeader>
+        <div>
+          <div className="eyebrow mb-1">top surveys</div>
+          <CardTitle>By response volume</CardTitle>
+        </div>
+      </CardHeader>
 
       {sorted.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center py-12 text-center text-sm text-gray-400">
+        <div className="flex-1 flex items-center justify-center py-12 text-center text-sm text-muted-foreground">
           No surveys with responses in this range.
         </div>
       ) : (
-        <div className="flex-1 flex flex-col divide-y divide-gray-100">
+        <div className="flex-1 flex flex-col divide-y divide-border">
           {sorted.map((row, i) => (
-            <div key={`${row.name}-${i}`} className="flex-1 min-h-13 px-6 py-3 flex items-center gap-3">
-              <span className="text-xs text-gray-400 font-medium tabular-nums w-6">{String(i + 1).padStart(2, '0')}</span>
-              <p className="flex-1 text-sm font-medium text-gray-900 truncate">{row.name || 'Untitled'}</p>
-              <div className="hidden sm:block w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden shrink-0">
+            <div key={`${row.name}-${i}`} className="flex-1 min-h-[56px] px-5 py-3 flex items-center gap-3">
+              <span className="num text-[11px] font-medium text-muted-foreground w-6">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <p className="flex-1 text-sm font-medium text-foreground truncate">
+                {row.name || 'Untitled'}
+              </p>
+              <div className="hidden sm:block w-20 h-1 bg-secondary rounded-full overflow-hidden shrink-0">
                 <div
-                  className="h-full bg-indigo-500 rounded-full"
+                  className="h-full bg-primary rounded-full transition-all duration-500"
                   style={{ width: `${(row.responses / max) * 100}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-gray-900 tabular-nums w-8 text-right">{row.responses}</span>
+              <span className="num text-sm font-semibold text-foreground w-7 text-right">
+                {row.responses}
+              </span>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -133,8 +164,8 @@ export default function Dashboard() {
   const [stats, setStats] = React.useState<any>(null);
   const [surveys, setSurveys] = React.useState<Survey[]>([]);
   const [dateRange, setDateRange] = React.useState<DateRange>({ startDate: '', endDate: '', preset: 'all' });
-  const [statusFilter, setStatusFilter] = React.useState('');
-  const [surveyFilter, setSurveyFilter] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('all');
+  const [surveyFilter, setSurveyFilter] = React.useState('all');
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -146,8 +177,8 @@ export default function Dashboard() {
     const params = new URLSearchParams();
     if (dateRange.startDate) params.append('start_date', new Date(dateRange.startDate).toISOString());
     if (dateRange.endDate) params.append('end_date', new Date(dateRange.endDate + 'T23:59:59').toISOString());
-    if (statusFilter) params.append('status', statusFilter);
-    if (surveyFilter) params.append('survey_id', surveyFilter);
+    if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+    if (surveyFilter && surveyFilter !== 'all') params.append('survey_id', surveyFilter);
     const qs = params.toString() ? `?${params}` : '';
     api.get<any>(`/analytics${qs}`)
       .then(data => { setStats(data); setLoading(false); })
@@ -156,61 +187,114 @@ export default function Dashboard() {
 
   React.useEffect(() => { fetchStats(); }, [dateRange.startDate, dateRange.endDate, statusFilter, surveyFilter]);
 
-  const hasFilter = dateRange.preset !== 'all' || statusFilter || surveyFilter;
+  const hasFilter = dateRange.preset !== 'all' || statusFilter !== 'all' || surveyFilter !== 'all';
 
   const clearFilters = () => {
     setDateRange({ startDate: '', endDate: '', preset: 'all' });
-    setStatusFilter('');
-    setSurveyFilter('');
+    setStatusFilter('all');
+    setSurveyFilter('all');
   };
 
+  const fmt = (v: any) => (loading ? '—' : v ?? 0);
+
   return (
-    <div className="space-y-8">
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <span className="text-sm font-medium text-gray-600 mr-1">Filters</span>
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
-        <select
-          value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setSurveyFilter(''); }}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-700 hover:border-gray-300 transition-colors"
-        >
-          <option value="">All Status</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="archived">Archived</option>
-        </select>
-        <select
-          value={surveyFilter}
-          onChange={e => { setSurveyFilter(e.target.value); setStatusFilter(''); }}
-          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 max-w-[220px] bg-white text-gray-700 hover:border-gray-300 transition-colors"
-        >
-          <option value="">All Surveys</option>
-          {surveys.map(s => (
-            <option key={s.id} value={s.id}>{s.title}</option>
-          ))}
-        </select>
-        {hasFilter && (
-          <button onClick={clearFilters}
-            className="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 transition-all">
-            Reset all
-          </button>
-        )}
-        {loading && (
-          <span className="text-xs text-indigo-400 font-medium animate-pulse ml-auto">Updating…</span>
-        )}
+    <div className="space-y-7">
+      {/* Page eyebrow + live status */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="eyebrow">dashboard</div>
+          <h1 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
+            Customer Satisfaction Overview
+          </h1>
+        </div>
+        <div className="hidden sm:flex items-center gap-2">
+          <span
+            className={`inline-block h-2 w-2 rounded-full ${
+              loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
+            }`}
+            aria-hidden
+          />
+          <span className="eyebrow">{loading ? 'syncing' : 'live'}</span>
+        </div>
       </div>
+
+      {/* Filter bar */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow pl-1 pr-2">filters</span>
+
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
+
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => { setStatusFilter(v); if (v !== 'all') setSurveyFilter('all'); }}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={surveyFilter}
+            onValueChange={(v) => { setSurveyFilter(v); if (v !== 'all') setStatusFilter('all'); }}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="All surveys" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All surveys</SelectItem>
+              {surveys.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {hasFilter && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Reset
+            </Button>
+          )}
+
+          {loading && (
+            <span className="eyebrow ml-auto text-primary animate-pulse">updating</span>
+          )}
+        </div>
+      </Card>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <StatCard icon={Users} label="Total Responses" value={loading ? '—' : stats?.totalResponses ?? 0} />
-        <StatCard icon={ClipboardCheck} label="Active Surveys" value={loading ? '—' : stats?.activeSurveys ?? 0} subtitle={`of ${stats?.surveyCount ?? 0} total`} />
-        <StatCard icon={MessageSquare} label="Completion Rate" value={loading ? '—' : `${stats?.completionRate ?? 0}%`} />
-        <StatCard icon={TrendingUp} label="Avg. CSAT Score" value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`} />
-        <StatCard icon={ThumbsUp} label="NPS Score" value={loading ? '—' : stats?.nps ?? 0} subtitle="Net Promoter Score" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <StatCard icon={Users} label="total responses" value={fmt(stats?.totalResponses)} />
+        <StatCard
+          icon={ClipboardCheck}
+          label="active surveys"
+          value={fmt(stats?.activeSurveys)}
+          subtitle={`of ${stats?.surveyCount ?? 0} total`}
+        />
+        <StatCard
+          icon={MessageSquare}
+          label="completion rate"
+          value={loading ? '—' : `${stats?.completionRate ?? 0}%`}
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="avg. CSAT"
+          value={loading ? '—' : `${stats?.csat ?? '0.0'}/5`}
+        />
+        <StatCard
+          icon={ThumbsUp}
+          label="NPS score"
+          value={fmt(stats?.nps)}
+          subtitle="net promoter"
+        />
       </div>
 
-      {/* Engagement Panel (Responses + Driver Heatmap) */}
+      {/* Engagement panel (Responses + Driver Heatmap) */}
       <EngagementPanel
         ratingDistribution={stats?.ratingDistribution ?? null}
         departmentEngagement={stats?.departmentEngagement ?? null}
@@ -218,7 +302,7 @@ export default function Dashboard() {
       />
 
       {/* Response Trend + Top Surveys */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
         <div className="xl:col-span-3 flex">
           <ResponseTrend data={stats?.responseTrend ?? []} />
         </div>
