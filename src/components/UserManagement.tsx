@@ -15,8 +15,12 @@ import {
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
+import { SearchBar } from './ui/SearchBar';
 
 const ROLES: UserRole[] = ['admin', 'manager'];
+
+type RoleFilter = 'all' | UserRole;
+type StatusFilter = 'all' | 'active' | 'deactivated';
 
 function roleBadge(role: UserRole) {
   return (
@@ -84,7 +88,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -94,7 +98,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="eyebrow">{isEdit ? 'account / edit' : 'account / create'}</div>
+            <div className="eyebrow">{isEdit ? 'account · edit' : 'account · create'}</div>
             <h3 className="heading text-[18px] font-semibold text-foreground mt-1 leading-none">
               {isEdit ? 'Edit user' : 'Create user'}
             </h3>
@@ -119,27 +123,13 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
           {!isEdit && (
             <div className="space-y-1.5">
               <Label htmlFor="user-email">Email</Label>
-              <Input
-                id="user-email"
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
+              <Input id="user-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
             </div>
           )}
 
           <div className="space-y-1.5">
             <Label htmlFor="user-name">Full name</Label>
-            <Input
-              id="user-name"
-              type="text"
-              required
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Juan dela Cruz"
-            />
+            <Input id="user-name" type="text" required value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Juan dela Cruz" />
           </div>
 
           <div className="space-y-1.5">
@@ -150,9 +140,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
               </SelectTrigger>
               <SelectContent>
                 {ROLES.map(r => (
-                  <SelectItem key={r} value={r}>
-                    {r.charAt(0).toUpperCase() + r.slice(1)}
-                  </SelectItem>
+                  <SelectItem key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -191,9 +179,7 @@ function UserModal({ user, onClose, onSave }: UserModalProps) {
           </div>
 
           <div className="flex gap-2 pt-1">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
             <Button type="submit" disabled={loading} className="flex-1">
               {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Create user'}
             </Button>
@@ -211,6 +197,11 @@ export default function UserManagement() {
   const [loading, setLoading] = React.useState(true);
   const [modalUser, setModalUser] = React.useState<User | null | undefined>(undefined);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+
+  // Filters
+  const [search, setSearch] = React.useState('');
+  const [roleFilter, setRoleFilter] = React.useState<RoleFilter>('all');
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all');
 
   const fetchUsers = () => {
     setLoading(true);
@@ -235,65 +226,172 @@ export default function UserManagement() {
   const initials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
+  // Filtered view
+  const filtered = React.useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter(u => {
+      if (q && !u.full_name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) {
+        return false;
+      }
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (statusFilter === 'active' && !u.is_active) return false;
+      if (statusFilter === 'deactivated' && u.is_active) return false;
+      return true;
+    });
+  }, [users, search, roleFilter, statusFilter]);
+
+  const hasFilter = search || roleFilter !== 'all' || statusFilter !== 'all';
+  const clearFilters = () => {
+    setSearch('');
+    setRoleFilter('all');
+    setStatusFilter('all');
+  };
+
+  const counts = {
+    all: users.length,
+    admin: users.filter(u => u.role === 'admin').length,
+    manager: users.filter(u => u.role === 'manager').length,
+    active: users.filter(u => u.is_active).length,
+    deactivated: users.filter(u => !u.is_active).length,
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-7">
+      {/* Editorial hero */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="eyebrow">directory</div>
-          <h2 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
-            Users
-          </h2>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Manage system staff accounts and roles.
+          <div className="eyebrow mb-2">administration · directory</div>
+          <h1 className="display text-[32px] text-foreground leading-tight">Users</h1>
+          <p className="text-[13px] text-muted-foreground mt-1.5">
+            Manage who has access to the console and what role they hold.
           </p>
         </div>
-        <Button onClick={() => setModalUser(null)}>
-          <Plus size={14} /> Create user
+        <Button onClick={() => setModalUser(null)} size="lg">
+          <Plus size={14} /> New user
         </Button>
       </div>
 
-      {/* Table */}
+      {/* Summary ribbon */}
+      <Card className="overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border">
+          <RibbonCell label="Total users" value={loading ? '—' : counts.all} />
+          <RibbonCell label="Admins" value={loading ? '—' : counts.admin} subtitle="highest privilege" />
+          <RibbonCell label="Managers" value={loading ? '—' : counts.manager} />
+          <RibbonCell
+            label="Deactivated"
+            value={loading ? '—' : counts.deactivated}
+            subtitle={counts.deactivated > 0 ? 'cannot sign in' : 'none'}
+            trend={counts.deactivated > 0 ? 'neg' : undefined}
+          />
+        </div>
+      </Card>
+
+      {/* Filter bar */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow pl-1 pr-2 shrink-0">filters</span>
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by name or email…"
+            shortcut="⌘K"
+            className="flex-1 min-w-[220px]"
+          />
+          <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleFilter)}>
+            <SelectTrigger className="w-35">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All roles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="manager">Manager</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+            <SelectTrigger className="w-35">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="deactivated">Deactivated</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasFilter && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Reset</Button>
+          )}
+          <span className="ml-auto eyebrow">
+            <span className="num text-foreground mr-1">{filtered.length}</span>
+            {filtered.length === 1 ? 'result' : 'results'}
+          </span>
+        </div>
+      </Card>
+
+      {/* Table — person-forward rows */}
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="w-[120px]">Role</TableHead>
-              <TableHead className="w-[140px]">Status</TableHead>
-              <TableHead className="w-[110px] text-right">Actions</TableHead>
+              <TableHead>Person</TableHead>
+              <TableHead className="w-[130px]">Role</TableHead>
+              <TableHead className="w-[150px]">Status</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-16 text-muted-foreground">
                   Loading users…
                 </TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                  No users found.
+                <TableCell colSpan={4} className="text-center py-16">
+                  <div className="space-y-1.5">
+                    <p className="text-[13px] text-muted-foreground">
+                      {hasFilter ? 'No users match these filters.' : 'No users yet.'}
+                    </p>
+                    {hasFilter && (
+                      <button onClick={clearFilters} className="text-[12px] text-primary font-medium hover:underline underline-offset-4">
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
-              users.map(user => (
+              filtered.map(user => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-md bg-secondary text-foreground font-mono text-[11px] font-semibold flex items-center justify-center border border-border">
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'h-10 w-10 rounded-md font-mono text-[12px] font-semibold flex items-center justify-center shrink-0 border',
+                          user.is_active
+                            ? 'bg-foreground text-primary-foreground border-foreground'
+                            : 'bg-secondary text-muted-foreground border-border',
+                        )}
+                      >
                         {initials(user.full_name)}
                       </div>
-                      <span className="font-medium text-foreground">{user.full_name}</span>
+                      <div className="min-w-0">
+                        <div className={cn(
+                          'text-[14px] font-medium leading-tight truncate',
+                          user.is_active ? 'text-foreground' : 'text-muted-foreground',
+                        )}>
+                          {user.full_name}
+                        </div>
+                        <div className="text-[12.5px] text-muted-foreground truncate mt-0.5">
+                          {user.email}
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell>{roleBadge(user.role)}</TableCell>
                   <TableCell>{statusBadge(user.is_active)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-0.5 opacity-70 hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-0.5">
                       <Button size="icon" variant="ghost" onClick={() => setModalUser(user)} aria-label="Edit">
                         <Edit2 size={14} />
                       </Button>
@@ -318,9 +416,28 @@ export default function UserManagement() {
         </Table>
       </Card>
 
-      {/* Create/Edit Modal */}
       {modalUser !== undefined && (
         <UserModal user={modalUser} onClose={() => setModalUser(undefined)} onSave={fetchUsers} />
+      )}
+    </div>
+  );
+}
+
+function RibbonCell({
+  label, value, subtitle, trend,
+}: {
+  label: string; value: React.ReactNode; subtitle?: string; trend?: 'pos' | 'neg';
+}) {
+  return (
+    <div className="px-5 py-5 flex flex-col gap-1.5">
+      <div className="eyebrow">{label}</div>
+      <div className="num text-[26px] font-semibold text-foreground leading-none mt-1">{value}</div>
+      {subtitle && (
+        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
+          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
+          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-amber-500" aria-hidden />}
+          <span>{subtitle}</span>
+        </div>
       )}
     </div>
   );

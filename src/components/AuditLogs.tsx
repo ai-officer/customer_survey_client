@@ -6,6 +6,10 @@ import { api } from '../lib/api';
 import { SearchBar } from './ui/SearchBar';
 import { Card } from '@/components/ui/card';
 import { Badge, badgeVariants } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
@@ -28,10 +32,21 @@ const ACTION_VARIANT: Record<string, BadgeVariant> = {
   DEACTIVATE_USER: 'destructive',
 };
 
+type CategoryFilter = 'all' | 'surveys' | 'users' | 'auth' | 'destructive';
+
+const CATEGORY_MATCH: Record<CategoryFilter, (action: string) => boolean> = {
+  all: () => true,
+  surveys: (a) => a.includes('SURVEY') || a === 'SUBMIT_RESPONSE' || a === 'REMIND_NON_RESPONDENTS',
+  users: (a) => a.includes('USER'),
+  auth: (a) => a === 'LOGIN' || a === 'REGISTER',
+  destructive: (a) => a.startsWith('DELETE_') || a.startsWith('DEACTIVATE_'),
+};
+
 export default function AuditLogs() {
   const [logs, setLogs] = React.useState<AuditLog[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState('');
+  const [category, setCategory] = React.useState<CategoryFilter>('all');
 
   React.useEffect(() => {
     api.get<AuditLog[]>('/audit-logs?limit=200')
@@ -39,63 +54,127 @@ export default function AuditLogs() {
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = logs.filter(log =>
-    !search ||
-    log.action.toLowerCase().includes(search.toLowerCase()) ||
-    (log.user_email || '').toLowerCase().includes(search.toLowerCase()) ||
-    (log.detail || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = React.useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const matchCategory = CATEGORY_MATCH[category];
+    return logs.filter(log => {
+      if (!matchCategory(log.action)) return false;
+      if (!q) return true;
+      return (
+        log.action.toLowerCase().includes(q) ||
+        (log.user_email || '').toLowerCase().includes(q) ||
+        (log.detail || '').toLowerCase().includes(q)
+      );
+    });
+  }, [logs, search, category]);
+
+  const hasFilter = search || category !== 'all';
+  const clearFilters = () => { setSearch(''); setCategory('all'); };
+
+  // Summary stats
+  const destructiveCount = logs.filter(l => CATEGORY_MATCH.destructive(l.action)).length;
+  const uniqueActors = new Set(logs.map(l => l.user_email).filter(Boolean)).size;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-7">
+      {/* Editorial hero */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="eyebrow">audit</div>
-          <h2 className="heading text-[24px] font-semibold text-foreground mt-1 leading-tight">
-            Audit Logs
-          </h2>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Complete trail of all user actions in the system.
+          <div className="eyebrow mb-2">administration · audit</div>
+          <h1 className="display text-[32px] text-foreground leading-tight">Audit Log</h1>
+          <p className="text-[13px] text-muted-foreground mt-1.5 max-w-lg">
+            An immutable record of every privileged action. Used for compliance, investigation, and on-call review.
           </p>
         </div>
-        <Badge variant="primary" className="gap-1.5 shrink-0">
+        <Badge variant="primary" className="gap-1.5 shrink-0 self-start">
           <Shield size={12} />
           <span>Admin only</span>
         </Badge>
       </div>
 
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Search by action, user, or detail…"
-        shortcut="⌘K"
-        className="max-w-sm"
-      />
+      {/* Summary ribbon */}
+      <Card className="overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border">
+          <RibbonCell label="Events (last 200)" value={loading ? '—' : logs.length} />
+          <RibbonCell label="Unique actors" value={loading ? '—' : uniqueActors} />
+          <RibbonCell
+            label="Destructive"
+            value={loading ? '—' : destructiveCount}
+            subtitle={destructiveCount > 0 ? 'review carefully' : 'none'}
+            trend={destructiveCount > 0 ? 'neg' : undefined}
+          />
+          <RibbonCell
+            label="Currently showing"
+            value={loading ? '—' : filtered.length}
+            subtitle={hasFilter ? 'filtered' : 'no filter'}
+          />
+        </div>
+      </Card>
 
+      {/* Filter bar */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow pl-1 pr-2 shrink-0">filters</span>
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by action, actor, or detail…"
+            shortcut="⌘K"
+            className="flex-1 min-w-[240px]"
+          />
+          <Select value={category} onValueChange={(v) => setCategory(v as CategoryFilter)}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              <SelectItem value="surveys">Surveys</SelectItem>
+              <SelectItem value="users">Users</SelectItem>
+              <SelectItem value="auth">Authentication</SelectItem>
+              <SelectItem value="destructive">Destructive actions</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasFilter && <Button variant="ghost" size="sm" onClick={clearFilters}>Reset</Button>}
+          <span className="ml-auto eyebrow">
+            <span className="num text-foreground mr-1">{filtered.length}</span>
+            {filtered.length === 1 ? 'event' : 'events'}
+          </span>
+        </div>
+      </Card>
+
+      {/* Table */}
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Timestamp</TableHead>
-              <TableHead className="w-[200px]">Action</TableHead>
+              <TableHead className="w-45">Timestamp</TableHead>
+              <TableHead className="w-50">Action</TableHead>
               <TableHead>User</TableHead>
-              <TableHead className="w-[120px]">Resource</TableHead>
+              <TableHead className="w-30">Resource</TableHead>
               <TableHead>Detail</TableHead>
-              <TableHead className="w-[140px]">IP</TableHead>
+              <TableHead className="w-35">IP</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
                   Loading audit logs…
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                  {search ? 'No logs match your search.' : 'No logs yet.'}
+                <TableCell colSpan={6} className="text-center py-16">
+                  <div className="space-y-1.5">
+                    <p className="text-[13px] text-muted-foreground">
+                      {hasFilter ? 'No events match these filters.' : 'No events yet.'}
+                    </p>
+                    {hasFilter && (
+                      <button onClick={clearFilters} className="text-[12px] text-primary font-medium hover:underline underline-offset-4">
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -105,7 +184,10 @@ export default function AuditLogs() {
                     {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ACTION_VARIANT[log.action] ?? 'outline'} className="normal-case tracking-normal text-[10.5px]">
+                    <Badge
+                      variant={ACTION_VARIANT[log.action] ?? 'outline'}
+                      className="normal-case tracking-normal text-[10.5px]"
+                    >
                       {log.action.replace(/_/g, ' ').toLowerCase()}
                     </Badge>
                   </TableCell>
@@ -129,6 +211,26 @@ export default function AuditLogs() {
           </TableBody>
         </Table>
       </Card>
+    </div>
+  );
+}
+
+function RibbonCell({
+  label, value, subtitle, trend,
+}: {
+  label: string; value: React.ReactNode; subtitle?: string; trend?: 'pos' | 'neg';
+}) {
+  return (
+    <div className="px-5 py-5 flex flex-col gap-1.5">
+      <div className="eyebrow">{label}</div>
+      <div className="num text-[26px] font-semibold text-foreground leading-none mt-1">{value}</div>
+      {subtitle && (
+        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
+          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
+          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-amber-500" aria-hidden />}
+          <span>{subtitle}</span>
+        </div>
+      )}
     </div>
   );
 }
