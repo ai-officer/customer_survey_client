@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, EyeOff, CheckCircle2 } from '../lib/icons';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Register() {
   const { user } = useAuth();
@@ -47,128 +51,131 @@ export default function Register() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center space-y-6">
-          <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 space-y-5">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 size={32} />
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-6">
+          <Card className="p-8 text-center space-y-5">
+            <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
+              <CheckCircle2 size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Registration Submitted</h2>
-            <p className="text-gray-500 leading-relaxed">
-              Your registration request has been submitted successfully. An administrator will review
-              and approve your account. You will be able to log in once approved.
+            <div>
+              <div className="eyebrow">registration / submitted</div>
+              <h2 className="heading text-[22px] font-semibold text-foreground mt-1">Request received</h2>
+            </div>
+            <p className="text-[13px] text-muted-foreground leading-relaxed">
+              Your registration request has been submitted. An administrator will review and approve
+              your account. You'll be able to sign in once it's approved.
             </p>
-            <Link
-              to="/login"
-              className="inline-block w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all"
-            >
-              Back to Login
-            </Link>
-          </div>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/login">Back to sign-in</Link>
+            </Button>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
-            <ClipboardCheck size={32} className="text-white" />
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-sm space-y-6 py-6">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-foreground rounded-md relative">
+            <ClipboardCheck size={22} className="text-primary" />
+            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 bg-primary rounded-full" aria-hidden />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create an Account</h1>
-          <p className="text-gray-500 mt-1 text-sm">
-            Register to access the Customer Survey System
-          </p>
+          <div>
+            <div className="eyebrow">authentication / register</div>
+            <h1 className="heading text-[26px] font-semibold text-foreground mt-1 leading-tight">
+              Request access
+            </h1>
+            <p className="text-[13px] text-muted-foreground mt-1.5">
+              An administrator will review your request before it's activated.
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <Card className="p-6">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+            <div className="mb-4 px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+              <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Full name</Label>
+              <Input
+                id="name"
                 type="text"
                 required
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Juan dela Cruz"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <input
+                <Input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Minimum 8 characters"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all pr-10"
+                  className="pr-9"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm">Confirm password</Label>
+              <Input
+                id="confirm"
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
               />
             </div>
 
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Submitting...' : 'Submit Registration'}
-              </button>
-            </div>
+            <Button type="submit" disabled={loading} className="w-full mt-1">
+              {loading ? 'Submitting…' : 'Submit registration'}
+            </Button>
           </form>
-        </div>
+        </Card>
 
-        <p className="text-center text-sm text-gray-500">
-          Already have an account?{' '}
-          <Link to="/login" className="text-indigo-600 font-semibold hover:underline">
+        <p className="text-center text-[12px]">
+          <span className="text-muted-foreground">Already have an account? </span>
+          <Link to="/login" className="text-foreground font-medium hover:underline underline-offset-4">
             Sign in
           </Link>
         </p>
 
-        <p className="text-center text-xs text-gray-400">
-          Global Officium Limited Inc. — Customer Survey System
+        <p className="eyebrow text-center">
+          global officium limited inc. · customer survey system
         </p>
       </div>
     </div>

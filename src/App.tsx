@@ -7,6 +7,7 @@ import SurveyForm from './components/SurveyForm';
 import SurveyResponse from './components/SurveyResponse';
 import DetailedAnalytics from './components/DetailedAnalytics';
 import Login from './components/Login';
+import Register from './components/Register';
 import UserManagement from './components/UserManagement';
 import AuditLogs from './components/AuditLogs';
 import DepartmentManagement from './components/DepartmentManagement';
@@ -30,6 +31,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/s/:id" element={<SurveyResponse />} />
 
       {/* Protected admin routes */}

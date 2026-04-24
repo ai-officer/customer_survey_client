@@ -1,16 +1,24 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from '../lib/icons';
+import {
+  LayoutDashboard, ClipboardList, BarChart3, LogOut, Menu, X, Users, Shield,
+  Building2, KeyRound, Eye, EyeOff,
+} from '../lib/icons';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-function PasswordInput({ value, onChange, placeholder, required }: {
+function PasswordInput({
+  value, onChange, placeholder, required,
+}: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -19,18 +27,18 @@ function PasswordInput({ value, onChange, placeholder, required }: {
   const [show, setShow] = React.useState(false);
   return (
     <div className="relative">
-      <input
+      <Input
         type={show ? 'text' : 'password'}
         required={required}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+        className="pr-9"
       />
       <button
         type="button"
         onClick={() => setShow(v => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
         tabIndex={-1}
       >
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -73,64 +81,92 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-5"
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.15 }}
+        className="bg-card border border-border rounded-lg p-6 max-w-sm w-full shadow-xl space-y-5"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><KeyRound size={18} /></div>
-            <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="eyebrow">account / security</div>
+            <h3 className="heading text-[18px] font-semibold text-foreground mt-1 leading-none">
+              Change password
+            </h3>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
-            <X size={20} />
+          <button
+            onClick={onClose}
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors -mr-1"
+            aria-label="Close"
+          >
+            <X size={18} />
           </button>
         </div>
 
         {success ? (
-          <div className="text-center py-6 space-y-3">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <KeyRound size={24} />
+          <div className="text-center py-4 space-y-3">
+            <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
+              <KeyRound size={18} />
             </div>
-            <p className="font-semibold text-gray-900">Password changed successfully!</p>
-            <button onClick={onClose} className="mt-2 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">
-              Done
-            </button>
+            <p className="text-[14px] font-medium text-foreground">Password changed successfully.</p>
+            <Button onClick={onClose} className="w-full">Done</Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>
+              <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+                <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
+                {error}
+              </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+            <div className="space-y-1.5">
+              <Label>Current password</Label>
               <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
+            <div className="space-y-1.5">
+              <Label>New password</Label>
+              <PasswordInput
+                required
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="At least 6 characters"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
+            <div className="space-y-1.5">
+              <Label>Confirm new password</Label>
               <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
             </div>
-            <div className="flex space-x-3 pt-2">
-              <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all text-sm">
+            <div className="flex gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
                 Cancel
-              </button>
-              <button type="submit" disabled={loading}
-                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm disabled:opacity-50">
-                {loading ? 'Saving...' : 'Change Password'}
-              </button>
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? 'Saving…' : 'Save'}
+              </Button>
             </div>
           </form>
         )}
       </motion.div>
     </div>
+  );
+}
+
+function BrandMark({ compact = false }: { compact?: boolean }) {
+  return (
+    <Link to="/" className="flex items-center gap-2.5 group">
+      <span className="relative inline-flex items-center justify-center h-7 w-7 bg-foreground rounded-md">
+        <span className="font-mono text-[11px] font-semibold text-primary leading-none tracking-tight">CS</span>
+        <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 bg-primary rounded-full" aria-hidden />
+      </span>
+      {!compact && (
+        <div className="leading-tight">
+          <div className="heading text-[14px] font-semibold text-foreground">Customer Survey</div>
+          <div className="eyebrow leading-none mt-0.5">admin / console</div>
+        </div>
+      )}
+    </Link>
   );
 }
 
@@ -144,7 +180,6 @@ export default function Layout({ children }: LayoutProps) {
   const { user, logout, isAdmin } = useAuth();
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
-  // Close user menu on outside click
   React.useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -157,7 +192,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navSections = [
     {
-      label: 'Main',
+      label: 'main',
       items: [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
@@ -165,7 +200,7 @@ export default function Layout({ children }: LayoutProps) {
       ],
     },
     ...(isAdmin ? [{
-      label: 'Admin',
+      label: 'admin',
       items: [
         { icon: Users, label: 'Users', path: '/settings/users' },
         { icon: Building2, label: 'Departments', path: '/settings/departments' },
@@ -184,88 +219,126 @@ export default function Layout({ children }: LayoutProps) {
     ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : '??';
 
+  const isActive = (path: string) =>
+    location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+
   const pageTitle = navItems.find(item => location.pathname === item.path)?.label
     || navItems.find(item => location.pathname.startsWith(item.path) && item.path !== '/')?.label
     || 'System';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
       {/* Mobile Header */}
-      <header className="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-40">
-        <span className="font-bold text-lg text-indigo-600">CSS Admin</span>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      <header className="md:hidden h-14 bg-card border-b border-border flex items-center justify-between px-4 sticky top-0 z-40">
+        <BrandMark />
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 hover:bg-secondary rounded-md transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </header>
 
       {/* Sidebar (Desktop) */}
       <aside className={cn(
-        "hidden md:flex bg-white border-r border-gray-200 transition-all duration-300 flex-col sticky top-0 h-screen",
-        isSidebarOpen ? "w-64" : "w-20"
+        'hidden md:flex bg-card border-r border-border transition-all duration-200 flex-col sticky top-0 h-screen',
+        isSidebarOpen ? 'w-60' : 'w-16',
       )}>
-        <div className="p-6 flex items-center justify-between">
+        <div className={cn(
+          'flex items-center border-b border-border h-14',
+          isSidebarOpen ? 'px-4 justify-between' : 'px-2 justify-center',
+        )}>
+          {isSidebarOpen ? <BrandMark /> : <BrandMark compact />}
           {isSidebarOpen && (
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-xl text-indigo-600">
-              CSS Admin
-            </motion.span>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+              aria-label="Collapse sidebar"
+            >
+              <X size={16} />
+            </button>
           )}
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
 
-        <nav className="flex-1 px-4 py-3 overflow-y-auto">
+        {!isSidebarOpen && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="mx-auto mt-2 p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+            aria-label="Expand sidebar"
+          >
+            <Menu size={16} />
+          </button>
+        )}
+
+        <nav className="flex-1 px-2 py-3 overflow-y-auto">
           {navSections.map((section, sectionIdx) => (
             <div
               key={section.label}
-              className={cn(sectionIdx > 0 && 'mt-5 pt-4 border-t border-gray-100')}
+              className={cn(sectionIdx > 0 && 'mt-4 pt-3 border-t border-border')}
             >
               {isSidebarOpen && (
-                <div className="px-3 pb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                  {section.label}
-                </div>
+                <div className="eyebrow px-2 py-1.5">{section.label}</div>
               )}
-              <div className="space-y-1">
-                {section.items.map((item) => (
-                  <Link key={item.path} to={item.path} className={cn(
-                    "flex items-center p-3 rounded-xl transition-all group",
-                    location.pathname === item.path
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  )}>
-                    <item.icon size={22} className={cn(
-                      "transition-transform group-hover:scale-110 flex-shrink-0",
-                      location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
-                    )} />
-                    {isSidebarOpen && (
-                      <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-medium">
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </Link>
-                ))}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        'relative flex items-center rounded-md transition-colors group text-[13.5px]',
+                        isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
+                        active
+                          ? 'bg-secondary text-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
+                      )}
+                    >
+                      {active && isSidebarOpen && (
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-primary rounded-full" aria-hidden />
+                      )}
+                      <item.icon
+                        size={16}
+                        className={cn(
+                          'shrink-0',
+                          active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
+                        )}
+                      />
+                      {isSidebarOpen && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100 space-y-2">
+        <div className="px-2 py-3 border-t border-border">
           {isSidebarOpen && user && (
-            <div className="px-3 py-2">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name}</p>
-              <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+            <div className="px-2 py-2 mb-1">
+              <p className="text-[13px] font-medium text-foreground truncate">{user.full_name}</p>
+              <p className="eyebrow mt-0.5">{user.role}</p>
             </div>
           )}
           <button
             onClick={() => setShowChangePassword(true)}
-            className="flex items-center w-full p-3 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all group"
+            className={cn(
+              'flex items-center rounded-md transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground w-full text-[13px]',
+              isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
+            )}
           >
-            <KeyRound size={22} className="flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-medium">Change Password</span>}
+            <KeyRound size={15} className="shrink-0" />
+            {isSidebarOpen && <span>Change password</span>}
           </button>
-          <button onClick={handleLogout} className="flex items-center w-full p-3 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group">
-            <LogOut size={22} className="group-hover:translate-x-1 transition-transform flex-shrink-0" />
-            {isSidebarOpen && <span className="ml-3 font-medium">Logout</span>}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              'flex items-center rounded-md transition-colors text-muted-foreground hover:bg-red-50 hover:text-destructive w-full text-[13px]',
+              isSidebarOpen ? 'px-2 py-2 gap-2.5' : 'p-2 justify-center',
+            )}
+          >
+            <LogOut size={15} className="shrink-0" />
+            {isSidebarOpen && <span>Sign out</span>}
           </button>
         </div>
       </aside>
@@ -277,44 +350,68 @@ export default function Layout({ children }: LayoutProps) {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40 md:hidden"
             />
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-white z-50 md:hidden shadow-2xl flex flex-col"
+              transition={{ type: 'spring', damping: 30, stiffness: 240 }}
+              className="fixed inset-y-0 left-0 w-72 bg-card z-50 md:hidden shadow-2xl flex flex-col border-r border-border"
             >
-              <div className="p-6 flex items-center justify-between border-b border-gray-100">
-                <span className="font-bold text-xl text-indigo-600">CSS Admin</span>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={24} /></button>
+              <div className="h-14 px-4 flex items-center justify-between border-b border-border">
+                <BrandMark />
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 hover:bg-secondary rounded-md transition-colors"
+                >
+                  <X size={20} />
+                </button>
               </div>
-              <nav className="flex-1 p-4 space-y-2">
-                {navItems.map((item) => (
-                  <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center p-4 rounded-2xl transition-all",
-                      location.pathname === item.path ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-50"
-                    )}>
-                    <item.icon size={24} className="mr-4" />
-                    <span className="font-semibold text-lg">{item.label}</span>
-                  </Link>
+              <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+                {navSections.map((section) => (
+                  <div key={section.label}>
+                    <div className="eyebrow px-2 pb-1.5">{section.label}</div>
+                    <div className="space-y-0.5">
+                      {section.items.map((item) => {
+                        const active = isActive(item.path);
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={cn(
+                              'flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] transition-colors',
+                              active
+                                ? 'bg-secondary text-foreground font-medium'
+                                : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
+                            )}
+                          >
+                            <item.icon size={18} className={active ? 'text-primary' : ''} />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
               </nav>
-              <div className="p-6 border-t border-gray-100 space-y-3">
+              <div className="p-3 border-t border-border">
                 {user && (
-                  <div className="px-1">
-                    <p className="font-semibold text-gray-900">{user.full_name}</p>
-                    <p className="text-sm text-gray-400 capitalize">{user.role}</p>
+                  <div className="px-2 py-2">
+                    <p className="text-[14px] font-medium text-foreground truncate">{user.full_name}</p>
+                    <p className="eyebrow mt-0.5">{user.role}</p>
                   </div>
                 )}
                 <button
                   onClick={() => { setIsMobileMenuOpen(false); setShowChangePassword(true); }}
-                  className="flex items-center w-full p-4 text-indigo-600 bg-indigo-50 rounded-2xl font-bold"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-muted-foreground hover:bg-secondary hover:text-foreground rounded-md transition-colors"
                 >
-                  <KeyRound size={24} className="mr-4" /> Change Password
+                  <KeyRound size={16} /> Change password
                 </button>
-                <button onClick={handleLogout} className="flex items-center w-full p-4 text-red-600 bg-red-50 rounded-2xl font-bold">
-                  <LogOut size={24} className="mr-4" /> Logout
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] text-muted-foreground hover:bg-red-50 hover:text-destructive rounded-md transition-colors"
+                >
+                  <LogOut size={16} /> Sign out
                 </button>
               </div>
             </motion.div>
@@ -323,41 +420,45 @@ export default function Layout({ children }: LayoutProps) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="hidden md:flex h-16 bg-white border-b border-gray-200 items-center justify-between px-8 sticky top-0 z-30">
-          <h1 className="text-lg font-semibold text-gray-800">{pageTitle}</h1>
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <header className="hidden md:flex h-14 bg-card/80 backdrop-blur-sm border-b border-border items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <span className="eyebrow">/</span>
+            <h1 className="heading text-[15px] font-semibold text-foreground">{pageTitle}</h1>
+          </div>
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(v => !v)}
-              className="flex items-center space-x-3 hover:bg-gray-50 rounded-xl px-3 py-2 transition-all"
+              className="flex items-center gap-2.5 hover:bg-secondary rounded-md pl-2 pr-1 py-1 transition-colors"
             >
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.full_name || ''}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role || ''}</p>
+              <div className="text-right leading-tight">
+                <p className="text-[13px] font-medium text-foreground">{user?.full_name || ''}</p>
+                <p className="eyebrow">{user?.role || ''}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+              <div className="w-8 h-8 rounded-md bg-foreground text-primary font-mono text-[11px] font-semibold flex items-center justify-center">
                 {initials}
               </div>
             </button>
             <AnimatePresence>
               {showUserMenu && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-50"
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute right-0 top-full mt-1.5 w-48 bg-popover rounded-md border border-border shadow-lg overflow-hidden z-50"
                 >
                   <button
                     onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
-                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-foreground hover:bg-secondary transition-colors"
                   >
-                    <KeyRound size={16} className="mr-2" /> Change Password
+                    <KeyRound size={14} className="text-muted-foreground" /> Change password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-foreground hover:bg-red-50 hover:text-destructive transition-colors border-t border-border"
                   >
-                    <LogOut size={16} className="mr-2" /> Logout
+                    <LogOut size={14} className="text-muted-foreground" /> Sign out
                   </button>
                 </motion.div>
               )}
@@ -365,14 +466,14 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
             >
               {children}
             </motion.div>
@@ -381,16 +482,23 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden h-16 bg-white border-t border-gray-200 flex items-center justify-around px-2 sticky bottom-0 z-40">
-        {navItems.slice(0, 4).map((item) => (
-          <Link key={item.path} to={item.path} className={cn(
-            "flex flex-col items-center justify-center flex-1 py-1 transition-colors",
-            location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
-          )}>
-            <item.icon size={20} />
-            <span className="text-[10px] font-medium mt-1">{item.label}</span>
-          </Link>
-        ))}
+      <nav className="md:hidden h-14 bg-card border-t border-border flex items-center justify-around px-2 sticky bottom-0 z-40">
+        {navItems.slice(0, 4).map((item) => {
+          const active = isActive(item.path);
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                'flex flex-col items-center justify-center flex-1 py-1 transition-colors',
+                active ? 'text-foreground' : 'text-muted-foreground',
+              )}
+            >
+              <item.icon size={18} className={active ? 'text-primary' : ''} />
+              <span className="text-[10px] mt-0.5">{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Change Password Modal */}

@@ -80,40 +80,48 @@ export default function EngagementPanel({
   return (
     <div className="space-y-6">
       {/* Responses chart + Engagement Score by Drivers — side by side */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
         {/* Responses (rating distribution) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+        <div className="xl:col-span-2 bg-card rounded-lg border border-border shadow-[0_1px_0_0_oklch(0.95_0.005_75)] p-5 space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Responses</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Response counts per rating (1–5).
-            </p>
+            <div className="eyebrow">responses</div>
+            <h3 className="heading text-[15px] font-semibold text-foreground mt-0.5">Rating distribution</h3>
+            <p className="text-[12px] text-muted-foreground mt-1">Response counts per rating (1–5).</p>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 24, right: 16, left: 0, bottom: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
                 <XAxis
                   dataKey="rating"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  label={{ value: 'Rating (1–5)', position: 'insideBottom', offset: -15, fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: '#78716c', fontSize: 11, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
+                  label={{ value: 'rating (1–5)', position: 'insideBottom', offset: -14, fill: '#78716c', fontSize: 10, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: '#78716c', fontSize: 11, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
                   domain={[0, Math.ceil(maxBar * 1.15)]}
                   allowDecimals={false}
-                  label={{ value: 'Responses', angle: -90, position: 'insideLeft', fill: '#6b7280', fontSize: 12, offset: 10 }}
+                  label={{ value: 'responses', angle: -90, position: 'insideLeft', fill: '#78716c', fontSize: 10, fontFamily: 'JetBrains Mono, ui-monospace, monospace', offset: 12 }}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(249, 168, 168, 0.1)' }}
-                  contentStyle={{ borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: 12 }}
+                  cursor={{ fill: 'rgba(245, 158, 11, 0.08)' }}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: '1px solid #e7e5e4',
+                    fontSize: 11,
+                    fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+                  }}
                 />
-                <Bar dataKey="value" fill="#f8a5a5" radius={[3, 3, 0, 0]} barSize={36}>
-                  <LabelList dataKey="value" position="top" style={{ fill: '#374151', fontSize: 11, fontWeight: 500 }} />
+                <Bar dataKey="value" fill="#f59e0b" radius={[2, 2, 0, 0]} barSize={32}>
+                  <LabelList
+                    dataKey="value"
+                    position="top"
+                    style={{ fill: '#0c0a09', fontSize: 11, fontWeight: 600, fontFamily: 'JetBrains Mono, ui-monospace, monospace' }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -121,11 +129,12 @@ export default function EngagementPanel({
         </div>
 
         {/* Engagement Score by Drivers */}
-        <div className="xl:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+        <div className="xl:col-span-3 bg-card rounded-lg border border-border shadow-[0_1px_0_0_oklch(0.95_0.005_75)] p-5 space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Engagement Score by Drivers</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              This heatmap shows engagement drivers/areas at a glance across teams. Participation Rate and e-NPS are live; the remaining driver columns will populate once survey questions can be tagged with driver categories.
+            <div className="eyebrow">engagement score by drivers</div>
+            <h3 className="heading text-[15px] font-semibold text-foreground mt-0.5">Heatmap by team</h3>
+            <p className="text-[12px] text-muted-foreground mt-1">
+              Participation Rate and e-NPS are live; remaining driver columns populate once survey questions are tagged with driver categories.
             </p>
           </div>
 
