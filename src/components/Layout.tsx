@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart3, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -154,17 +154,25 @@ export default function Layout({ children }: LayoutProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    ...(isAdmin ? [
-      { icon: Users, label: 'Users', path: '/settings/users' },
-      { icon: Building2, label: 'Departments', path: '/settings/departments' },
-      { icon: Shield, label: 'Audit Logs', path: '/settings/audit' },
-    ] : []),
-    { icon: Settings, label: 'Settings', path: '/settings' },
+  const navSections = [
+    {
+      label: 'Main',
+      items: [
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
+        { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+      ],
+    },
+    ...(isAdmin ? [{
+      label: 'Admin',
+      items: [
+        { icon: Users, label: 'Users', path: '/settings/users' },
+        { icon: Building2, label: 'Departments', path: '/settings/departments' },
+        { icon: Shield, label: 'Audit Logs', path: '/settings/audit' },
+      ],
+    }] : []),
   ];
+  const navItems = navSections.flatMap(s => s.items);
 
   const handleLogout = () => {
     logout();
@@ -212,24 +220,42 @@ export default function Layout({ children }: LayoutProps) {
           </button>
         </div>
 
-        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path} className={cn(
-                "flex items-center px-3 py-2 text-[13px] transition-colors relative",
-                active ? "bg-accent-soft text-ink font-medium" : "text-muted hover:text-ink hover:bg-accent-soft/60"
-              )}>
-                {active && <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-accent" aria-hidden />}
-                <item.icon size={16} className={cn("flex-shrink-0", active ? "text-accent" : "text-muted")} />
-                {isSidebarOpen && (
-                  <motion.span initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className="ml-3">
-                    {item.label}
-                  </motion.span>
-                )}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+          {navSections.map((section, sectionIdx) => (
+            <div
+              key={section.label}
+              className={cn(sectionIdx > 0 && 'mt-5 pt-4 border-t border-line')}
+            >
+              {isSidebarOpen && (
+                <div className="label px-3 pb-2" style={{ fontSize: '9.5px' }}>
+                  {section.label}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        'flex items-center px-3 py-1.5 text-[13px] transition-colors relative',
+                        active ? 'bg-accent-soft text-ink font-medium' : 'text-muted hover:text-ink hover:bg-accent-soft/60'
+                      )}
+                    >
+                      {active && <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-accent" aria-hidden />}
+                      <item.icon size={16} className={cn('flex-shrink-0', active ? 'text-accent' : 'text-muted')} />
+                      {isSidebarOpen && (
+                        <motion.span initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className="ml-3">
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="border-t border-line p-2">
