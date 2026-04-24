@@ -51,12 +51,12 @@ export default function Login() {
 
         <div className="relative max-w-md">
           <div className="eyebrow mb-6">a customer survey platform</div>
-          <blockquote className="font-display italic font-medium text-[40px] leading-[1.1] tracking-tight text-[color:var(--sidebar-fg)]">
+          <div className="display text-[42px] text-[color:var(--sidebar-fg)] tracking-tight">
             Measure what matters.
-            <span className="block not-italic font-normal text-[color:var(--sidebar-muted-fg)] mt-3 text-[22px] leading-snug">
-              Precise feedback, considered decisions, a record of voice across every engagement.
-            </span>
-          </blockquote>
+          </div>
+          <p className="mt-4 text-[17px] leading-relaxed text-[color:var(--sidebar-muted-fg)]">
+            Precise feedback, considered decisions, a record of voice across every engagement.
+          </p>
         </div>
 
         <div className="relative flex items-end justify-between gap-6">

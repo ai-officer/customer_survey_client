@@ -8,9 +8,9 @@ interface BrandMarkProps {
 }
 
 /**
- * Identity mark: a single italic Fraunces "C" on a dark tile with an
- * accent dot. The mark uses the brand typography itself, so it can't
- * feel disconnected from the rest of the product.
+ * Identity mark: a single upright "C" in Instrument Sans on a dark tile with
+ * an accent dot. Uses the brand typography so the mark and the wordmark
+ * stay coherent at all sizes.
  */
 export function BrandMark({ size = 36, inverted = false, className }: BrandMarkProps) {
   return (
@@ -24,11 +24,11 @@ export function BrandMark({ size = 36, inverted = false, className }: BrandMarkP
       aria-hidden
     >
       <span
-        className="font-display italic font-medium leading-none"
+        className="font-sans font-bold leading-none"
         style={{
-          fontSize: size * 0.62,
+          fontSize: size * 0.55,
           color: inverted ? 'var(--sidebar-bg)' : 'var(--primary)',
-          fontFeatureSettings: '"ss01"',
+          letterSpacing: '-0.04em',
           marginTop: -1,
         }}
       >
