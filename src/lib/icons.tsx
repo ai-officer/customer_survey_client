@@ -4,6 +4,7 @@ import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
   ArrowRightStartOnRectangleIcon,
+  ArrowTopRightOnSquareIcon,
   ArrowTrendingUpIcon,
   Bars3Icon,
   BellIcon,
@@ -15,6 +16,7 @@ import {
   CheckCircleIcon,
   CheckIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   ChevronUpIcon,
   ClipboardDocumentCheckIcon,
   ClipboardDocumentListIcon,
@@ -68,6 +70,7 @@ export const Calendar = make(CalendarIcon);
 export const Check = make(CheckIcon);
 export const CheckCircle2 = make(CheckCircleIcon);
 export const ChevronDown = make(ChevronDownIcon);
+export const ChevronRight = make(ChevronRightIcon);
 export const ChevronUp = make(ChevronUpIcon);
 export const ClipboardCheck = make(ClipboardDocumentCheckIcon);
 export const ClipboardList = make(ClipboardDocumentListIcon);
@@ -76,6 +79,7 @@ export const Copy = make(DocumentDuplicateIcon);
 export const CopyPlus = make(DocumentPlusIcon);
 export const Download = make(ArrowDownTrayIcon);
 export const Edit2 = make(PencilSquareIcon);
+export const ExternalLink = make(ArrowTopRightOnSquareIcon);
 export const Eye = make(EyeIcon);
 export const EyeOff = make(EyeSlashIcon);
 export const GripVertical = make(EllipsisVerticalIcon);
