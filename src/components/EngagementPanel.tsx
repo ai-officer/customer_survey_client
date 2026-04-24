@@ -1,5 +1,4 @@
 import React from 'react';
-import { Info, TrendingDown, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { cn } from '../lib/utils';
 
@@ -32,8 +31,6 @@ export interface DepartmentEngagement {
 
 interface EngagementPanelProps {
   ratingDistribution?: RatingBucket[] | null;
-  completionRate?: number | null;
-  previousCompletionRate?: number | null;
   departmentEngagement?: DepartmentEngagement[] | null;
   loading?: boolean;
 }
@@ -64,8 +61,6 @@ function formatCell(columnIndex: number, value: number): string {
 
 export default function EngagementPanel({
   ratingDistribution = null,
-  completionRate = null,
-  previousCompletionRate = null,
   departmentEngagement = null,
   loading = false,
 }: EngagementPanelProps) {
@@ -80,44 +75,10 @@ export default function EngagementPanel({
 
   const maxBar = Math.max(10, ...chartData.map((d) => d.value));
 
-  const displayRate = completionRate == null ? '—' : `${completionRate.toFixed(1)}%`;
-  const delta =
-    completionRate != null && previousCompletionRate != null
-      ? completionRate - previousCompletionRate
-      : null;
-
   const rows = departmentEngagement ?? [];
 
   return (
     <div className="space-y-6">
-      {/* Participation rate banner */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-wrap items-center gap-6">
-        <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-          <span>Participation rate</span>
-          <Info size={14} className="text-gray-400" />
-        </div>
-        <div className="text-4xl font-bold text-gray-900 leading-none">
-          {loading ? '…' : displayRate}
-        </div>
-        {delta !== null && delta !== 0 && (
-          <div
-            className={cn(
-              'flex items-center gap-1 text-sm font-medium',
-              delta < 0 ? 'text-rose-500' : 'text-emerald-600'
-            )}
-          >
-            <span>{Math.abs(delta).toFixed(1)}%</span>
-            {delta < 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-            <span className="text-gray-500 font-normal">
-              {delta < 0 ? 'decrease' : 'increase'} from previous period
-            </span>
-          </div>
-        )}
-        {delta === null && !loading && (
-          <div className="text-xs text-gray-400">Apply a date range to compare against the previous period.</div>
-        )}
-      </div>
-
       {/* Responses chart + Engagement Score by Drivers — side by side */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Responses (rating distribution) */}

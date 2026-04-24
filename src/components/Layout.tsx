@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, BarChart3, Settings, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart3, LogOut, Menu, X, Users, Shield, Building2, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -155,17 +155,25 @@ export default function Layout({ children }: LayoutProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    ...(isAdmin ? [
-      { icon: Users, label: 'Users', path: '/settings/users' },
-      { icon: Building2, label: 'Departments', path: '/settings/departments' },
-      { icon: Shield, label: 'Audit Logs', path: '/settings/audit' },
-    ] : []),
-    { icon: Settings, label: 'Settings', path: '/settings' },
+  const navSections = [
+    {
+      label: 'Main',
+      items: [
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
+        { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+      ],
+    },
+    ...(isAdmin ? [{
+      label: 'Admin',
+      items: [
+        { icon: Users, label: 'Users', path: '/settings/users' },
+        { icon: Building2, label: 'Departments', path: '/settings/departments' },
+        { icon: Shield, label: 'Audit Logs', path: '/settings/audit' },
+      ],
+    }] : []),
   ];
+  const navItems = navSections.flatMap(s => s.items);
 
   const handleLogout = () => {
     logout();
@@ -206,24 +214,38 @@ export default function Layout({ children }: LayoutProps) {
           </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link key={item.path} to={item.path} className={cn(
-              "flex items-center p-3 rounded-xl transition-all group",
-              location.pathname === item.path
-                ? "bg-indigo-50 text-indigo-600"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            )}>
-              <item.icon size={22} className={cn(
-                "transition-transform group-hover:scale-110 flex-shrink-0",
-                location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
-              )} />
+        <nav className="flex-1 px-4 py-3 overflow-y-auto">
+          {navSections.map((section, sectionIdx) => (
+            <div
+              key={section.label}
+              className={cn(sectionIdx > 0 && 'mt-5 pt-4 border-t border-gray-100')}
+            >
               {isSidebarOpen && (
-                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-medium">
-                  {item.label}
-                </motion.span>
+                <div className="px-3 pb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {section.label}
+                </div>
               )}
-            </Link>
+              <div className="space-y-1">
+                {section.items.map((item) => (
+                  <Link key={item.path} to={item.path} className={cn(
+                    "flex items-center p-3 rounded-xl transition-all group",
+                    location.pathname === item.path
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  )}>
+                    <item.icon size={22} className={cn(
+                      "transition-transform group-hover:scale-110 flex-shrink-0",
+                      location.pathname === item.path ? "text-indigo-600" : "text-gray-400"
+                    )} />
+                    {isSidebarOpen && (
+                      <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="ml-3 font-medium">
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 

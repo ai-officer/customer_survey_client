@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, ExternalLink, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
+import { Plus, Search, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Survey } from '../types';
@@ -333,16 +333,7 @@ export default function SurveyList() {
                         >
                           <Copy size={18} />
                         </button>
-                        <a 
-                          href={`/s/${survey.id}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="Open Customer View"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                        <button 
+                        <button
                           onClick={() => setQrSurvey(survey)}
                           className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                           title="View QR Code"
@@ -417,9 +408,6 @@ export default function SurveyList() {
                       <button onClick={() => copyLink(survey.id)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
                       <Copy size={18} />
                     </button>
-                    <a href={`/s/${survey.id}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <ExternalLink size={18} />
-                    </a>
                     <button onClick={() => setQrSurvey(survey)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
                       <QrCode size={18} />
                     </button>
