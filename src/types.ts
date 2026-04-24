@@ -22,6 +22,7 @@ export interface Survey {
   customer?: string | null;
   questions: Question[];
   createdByName?: string | null;
+  responseCount?: number;
 }
 
 export interface SurveyResponse {

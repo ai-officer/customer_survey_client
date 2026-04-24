@@ -1,5 +1,8 @@
 import React from 'react';
-import { Plus, Eye, Edit2, Archive, Trash2, CheckCircle2, Clock, AlertCircle, BarChart3, Copy, QrCode, X, Download, CopyPlus, Mail, Bell, EyeOff } from '../lib/icons';
+import {
+  Plus, Eye, Edit2, Trash2, CheckCircle2, AlertCircle, BarChart3, Copy, QrCode, X,
+  Download, CopyPlus, Mail, Bell, ChevronDown, ChevronUp, Archive,
+} from '../lib/icons';
 import { SearchBar } from './ui/SearchBar';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -10,6 +13,16 @@ import SurveyResponse from './SurveyResponse';
 import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+
+type Tab = 'active' | 'draft' | 'archived';
+type SortKey = 'title' | 'createdAt' | 'responses';
+type SortDir = 'asc' | 'desc';
+
+const TABS: { key: Tab; label: string; status: Survey['status'] }[] = [
+  { key: 'active',   label: 'Active',   status: 'published' },
+  { key: 'draft',    label: 'Drafts',   status: 'draft' },
+  { key: 'archived', label: 'Archived', status: 'archived' },
+];
 
 function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => void }) {
   const [emailInput, setEmailInput] = React.useState('');
@@ -99,13 +112,106 @@ function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => v
   );
 }
 
+interface OverflowMenuProps {
+  survey: Survey;
+  canEdit: boolean;
+  onPreview: () => void;
+  onCopyLink: () => void;
+  onQR: () => void;
+  onDuplicate: () => void;
+  onReminders: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  copied: boolean;
+}
+
+function OverflowMenu({
+  survey, canEdit, onPreview, onCopyLink, onQR, onDuplicate, onReminders, onEdit, onDelete, copied,
+}: OverflowMenuProps) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const item = "w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors";
+  const danger = "w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-label="More actions"
+        aria-expanded={open}
+        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+      >
+        <span className="block leading-none text-xl select-none" aria-hidden>⋯</span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 z-30 w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden py-1.5"
+        >
+          <button onClick={() => { setOpen(false); onPreview(); }} className={item}>
+            <Eye size={14} className="text-gray-400" /> Preview
+          </button>
+          <Link
+            to={`/analytics/${survey.id}`}
+            onClick={() => setOpen(false)}
+            className={item}
+          >
+            <BarChart3 size={14} className="text-gray-400" /> View analytics
+          </Link>
+          <button onClick={() => { setOpen(false); onCopyLink(); }} className={item}>
+            <Copy size={14} className={copied ? 'text-emerald-600' : 'text-gray-400'} />
+            {copied ? 'Link copied' : 'Copy link'}
+          </button>
+          <button onClick={() => { setOpen(false); onQR(); }} className={item}>
+            <QrCode size={14} className="text-gray-400" /> QR code
+          </button>
+          {canEdit && (
+            <>
+              <div className="my-1 border-t border-gray-100" />
+              <button onClick={() => { setOpen(false); onDuplicate(); }} className={item}>
+                <CopyPlus size={14} className="text-gray-400" /> Duplicate
+              </button>
+              {survey.status === 'published' && (
+                <button onClick={() => { setOpen(false); onReminders(); }} className={item}>
+                  <Bell size={14} className="text-gray-400" /> Send reminders
+                </button>
+              )}
+              {survey.status !== 'draft' && (
+                <button onClick={() => { setOpen(false); onEdit(); }} className={item}>
+                  <Edit2 size={14} className="text-gray-400" /> Edit
+                </button>
+              )}
+              <div className="my-1 border-t border-gray-100" />
+              <button onClick={() => { setOpen(false); onDelete(); }} className={danger}>
+                <Trash2 size={14} /> Delete
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SurveyList() {
   const { canEdit } = useAuth();
   const [surveys, setSurveys] = React.useState<Survey[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState<string>('all');
-  const [showArchived, setShowArchived] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<Tab>('active');
+  const [sortKey, setSortKey] = React.useState<SortKey>('createdAt');
+  const [sortDir, setSortDir] = React.useState<SortDir>('desc');
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [qrSurvey, setQrSurvey] = React.useState<Survey | null>(null);
   const [previewSurvey, setPreviewSurvey] = React.useState<Survey | null>(null);
@@ -113,19 +219,44 @@ export default function SurveyList() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [distributeSurvey, setDistributeSurvey] = React.useState<Survey | null>(null);
 
-  const filteredSurveys = surveys.filter(s => {
-    // Hide archived unless explicitly shown
-    if (!showArchived && s.status === 'archived') return false;
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = !q ||
-      s.title.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      (s.createdByName && s.createdByName.toLowerCase().includes(q));
-    const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const tabCounts = React.useMemo(() => ({
+    active:   surveys.filter(s => s.status === 'published').length,
+    draft:    surveys.filter(s => s.status === 'draft').length,
+    archived: surveys.filter(s => s.status === 'archived').length,
+  }), [surveys]);
 
-  const archivedCount = surveys.filter(s => s.status === 'archived').length;
+  const tabStatus = TABS.find(t => t.key === activeTab)!.status;
+
+  const filteredSurveys = React.useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = surveys
+      .filter(s => s.status === tabStatus)
+      .filter(s => !q ||
+        s.title.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        (s.createdByName && s.createdByName.toLowerCase().includes(q)) ||
+        (s.departmentName && s.departmentName.toLowerCase().includes(q)) ||
+        (s.customer && s.customer.toLowerCase().includes(q))
+      );
+
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortKey === 'title') return a.title.localeCompare(b.title) * dir;
+      if (sortKey === 'responses') return ((a.responseCount ?? 0) - (b.responseCount ?? 0)) * dir;
+      // createdAt
+      return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir;
+    });
+    return sorted;
+  }, [surveys, tabStatus, searchQuery, sortKey, sortDir]);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'title' ? 'asc' : 'desc');
+    }
+  };
 
   const copyLink = (id: string) => {
     const url = `${window.location.origin}/s/${id}`;
@@ -190,188 +321,216 @@ export default function SurveyList() {
     api.get<Survey[]>('/surveys').then(data => { setSurveys(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  const getStatusBadge = (status: Survey['status']) => {
-    switch (status) {
-      case 'published':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-            <CheckCircle2 size={12} className="mr-1" /> Published
-          </span>
-        );
-      case 'draft':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-            <Clock size={12} className="mr-1" /> Draft
-          </span>
-        );
-      case 'archived':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-100">
-            <Archive size={12} className="mr-1" /> Archived
-          </span>
-        );
-    }
+  const SortHeader = ({ label, k, align = 'left' }: { label: string; k: SortKey; align?: 'left' | 'right' }) => {
+    const active = sortKey === k;
+    return (
+      <th
+        className={cn(
+          'px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider select-none',
+          align === 'right' && 'text-right'
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => handleSort(k)}
+          className={cn(
+            'inline-flex items-center gap-1.5 transition-colors',
+            align === 'right' && 'flex-row-reverse',
+            active ? 'text-indigo-600' : 'hover:text-gray-700'
+          )}
+        >
+          <span>{label}</span>
+          {active ? (
+            sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+          ) : (
+            <span className="w-3 inline-block" aria-hidden />
+          )}
+        </button>
+      </th>
+    );
   };
 
   return (
     <div className="space-y-6">
+      {/* Top bar: search + create */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search surveys by title, description, or creator…"
+          placeholder="Search by title, description, creator, department, customer…"
           shortcut="⌘K"
           className="flex-1 max-w-md"
         />
-        <div className="flex items-center space-x-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
-          >
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-            {showArchived && <option value="archived">Archived</option>}
-          </select>
-          <button
-            onClick={() => {
-              setShowArchived(v => !v);
-              if (statusFilter === 'archived') setStatusFilter('all');
-            }}
-            className={cn(
-              "flex items-center px-3 py-2 rounded-xl text-sm font-medium border transition-all",
-              showArchived
-                ? "bg-gray-100 text-gray-700 border-gray-300"
-                : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-            )}
-            title={showArchived ? "Hide archived surveys" : "Show archived surveys"}
-          >
-            {showArchived ? <EyeOff size={16} className="mr-1.5" /> : <Archive size={16} className="mr-1.5" />}
-            {showArchived ? 'Hide Archived' : `Archived${archivedCount > 0 ? ` (${archivedCount})` : ''}`}
-          </button>
-          <Link
-            to="/surveys/new"
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
-          >
-            <Plus size={18} className="mr-2" /> Create Survey
-          </Link>
-        </div>
+        <Link
+          to="/surveys/new"
+          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
+        >
+          <Plus size={18} className="mr-2" /> Create Survey
+        </Link>
       </div>
 
+      {/* Status tabs */}
+      <div className="border-b border-gray-200 flex items-center gap-1">
+        {TABS.map(tab => {
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'pb-3 px-3 -mb-px border-b-2 text-sm transition-colors flex items-center gap-2',
+                active
+                  ? 'border-indigo-600 text-indigo-700 font-semibold'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              )}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={cn(
+                  'px-1.5 py-0.5 rounded-md text-[11px] font-medium tabular-nums',
+                  active ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                )}
+              >
+                {tabCounts[tab.key]}
+              </span>
+            </button>
+          );
+        })}
+        {searchQuery && (
+          <span className="ml-auto text-xs text-gray-400">
+            {filteredSurveys.length} match{filteredSurveys.length === 1 ? '' : 'es'}
+          </span>
+        )}
+      </div>
+
+      {/* Table card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Desktop Table View */}
+        {/* Desktop Table */}
         <div className="hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Survey Details</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Questions</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created At</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                <SortHeader label="Survey" k="title" />
+                <SortHeader label="Responses" k="responses" />
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <SortHeader label="Created" k="createdAt" />
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading surveys...</td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading surveys…</td>
                 </tr>
               ) : filteredSurveys.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center">
-                      <AlertCircle size={48} className="text-gray-200 mb-4" />
-                      <p className="text-gray-500 font-medium">No surveys found</p>
+                      {activeTab === 'archived'
+                        ? <Archive size={36} className="text-gray-200 mb-3" />
+                        : <AlertCircle size={36} className="text-gray-200 mb-3" />
+                      }
+                      <p className="text-gray-500 font-medium">
+                        {searchQuery
+                          ? 'No surveys match your search'
+                          : activeTab === 'active'
+                            ? 'No published surveys yet'
+                            : activeTab === 'draft'
+                              ? 'No drafts'
+                              : 'No archived surveys'}
+                      </p>
                       {searchQuery ? (
                         <button onClick={() => setSearchQuery('')} className="text-indigo-600 text-sm mt-2 hover:underline">Clear search</button>
-                      ) : (
-                        <Link to="/surveys/new" className="text-indigo-600 text-sm mt-2 hover:underline">Create your first survey</Link>
+                      ) : activeTab !== 'archived' && (
+                        <Link to="/surveys/new" className="text-indigo-600 text-sm mt-2 hover:underline">Create a survey</Link>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
-                filteredSurveys.map((survey) => (
-                  <tr key={survey.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{survey.title}</p>
-                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{survey.description}</p>
-                        {survey.createdByName && (
-                          <p className="text-xs text-gray-400 mt-0.5">By {survey.createdByName}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(survey.status)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 font-medium">{survey.questions.length} questions</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-500">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button 
-                          onClick={() => setPreviewSurvey(survey)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="Preview Survey"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        <button 
-                          onClick={() => copyLink(survey.id)}
-                          className={cn(
-                            "p-2 rounded-lg transition-all",
-                            copiedId === survey.id ? "text-emerald-600 bg-emerald-50" : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"
-                          )}
-                          title="Copy Survey Link"
-                        >
-                          <Copy size={18} />
-                        </button>
-                        <button
-                          onClick={() => setQrSurvey(survey)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="View QR Code"
-                        >
-                          <QrCode size={18} />
-                        </button>
+                filteredSurveys.map((survey) => {
+                  const responses = survey.responseCount;
+                  return (
+                    <tr key={survey.id} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-4 max-w-md">
                         <Link
                           to={`/analytics/${survey.id}`}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="View Analytics"
+                          className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors block"
                         >
-                          <BarChart3 size={18} />
+                          {survey.title || 'Untitled'}
                         </Link>
-                        {canEdit && (
-                          <>
-                            <button onClick={() => duplicateSurvey(survey)} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all" title="Duplicate">
-                              <CopyPlus size={18} />
-                            </button>
-                            {survey.status === 'published' && (
-                              <>
-                                <button onClick={() => setDistributeSurvey(survey)} className="p-2 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-lg transition-all" title="Distribute via Email">
-                                  <Mail size={18} />
-                                </button>
-                                <button onClick={() => sendReminders(survey)} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all" title="Send Reminders">
-                                  <Bell size={18} />
-                                </button>
-                              </>
-                            )}
-                            <Link to={`/surveys/edit/${survey.id}`} className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Edit">
-                              <Edit2 size={18} />
-                            </Link>
-                            <button onClick={() => setSurveyToDelete(survey)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete">
-                              <Trash2 size={18} />
-                            </button>
-                          </>
+                        {survey.description && (
+                          <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{survey.description}</p>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          {survey.questions.length} question{survey.questions.length === 1 ? '' : 's'}
+                          {survey.createdByName && <> · By {survey.createdByName}</>}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        {responses === undefined ? (
+                          <span className="text-sm text-gray-300">—</span>
+                        ) : (
+                          <div>
+                            <span className="text-sm font-bold text-gray-900 tabular-nums">{responses}</span>
+                            <p className="text-[11px] text-gray-400">response{responses === 1 ? '' : 's'}</p>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {survey.departmentName ? (
+                          <span className="text-sm text-gray-700">{survey.departmentName}</span>
+                        ) : (
+                          <span className="text-sm text-gray-300">—</span>
+                        )}
+                        {survey.customer && (
+                          <p className="text-[11px] text-gray-400 mt-0.5 truncate max-w-[180px]">{survey.customer}</p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-500">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Per-status primary action */}
+                          {survey.status === 'published' && canEdit && (
+                            <button
+                              onClick={() => setDistributeSurvey(survey)}
+                              className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+                            >
+                              <Mail size={14} className="mr-1.5" /> Distribute
+                            </button>
+                          )}
+                          {survey.status === 'draft' && canEdit && (
+                            <Link
+                              to={`/surveys/edit/${survey.id}`}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:border-indigo-300 hover:text-indigo-700 transition-colors"
+                            >
+                              <Edit2 size={14} className="mr-1.5" /> Edit
+                            </Link>
+                          )}
+                          {survey.status === 'archived' && (
+                            <span className="text-[11px] text-gray-400 italic">archived</span>
+                          )}
+
+                          <OverflowMenu
+                            survey={survey}
+                            canEdit={canEdit}
+                            onPreview={() => setPreviewSurvey(survey)}
+                            onCopyLink={() => copyLink(survey.id)}
+                            onQR={() => setQrSurvey(survey)}
+                            onDuplicate={() => duplicateSurvey(survey)}
+                            onReminders={() => sendReminders(survey)}
+                            onEdit={() => { window.location.href = `/surveys/edit/${survey.id}`; }}
+                            onDelete={() => setSurveyToDelete(survey)}
+                            copied={copiedId === survey.id}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -380,48 +539,69 @@ export default function SurveyList() {
         {/* Mobile Card View */}
         <div className="md:hidden divide-y divide-gray-100">
           {loading ? (
-            <div className="p-6 text-center text-gray-500">Loading surveys...</div>
+            <div className="p-6 text-center text-gray-500">Loading surveys…</div>
           ) : filteredSurveys.length === 0 ? (
             <div className="p-12 text-center">
-              <AlertCircle size={48} className="text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">No surveys found</p>
+              <AlertCircle size={36} className="text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-500 font-medium">No surveys</p>
             </div>
           ) : (
-            filteredSurveys.map((survey) => (
-              <div key={survey.id} className="p-4 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-bold text-gray-900">{survey.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1">{format(new Date(survey.createdAt), 'MMM d, yyyy')}</p>
+            filteredSurveys.map((survey) => {
+              const responses = survey.responseCount;
+              return (
+                <div key={survey.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link to={`/analytics/${survey.id}`} className="font-bold text-gray-900 block truncate">
+                        {survey.title || 'Untitled'}
+                      </Link>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {format(new Date(survey.createdAt), 'MMM d, yyyy')}
+                        {survey.departmentName && <> · {survey.departmentName}</>}
+                      </p>
+                    </div>
+                    <OverflowMenu
+                      survey={survey}
+                      canEdit={canEdit}
+                      onPreview={() => setPreviewSurvey(survey)}
+                      onCopyLink={() => copyLink(survey.id)}
+                      onQR={() => setQrSurvey(survey)}
+                      onDuplicate={() => duplicateSurvey(survey)}
+                      onReminders={() => sendReminders(survey)}
+                      onEdit={() => { window.location.href = `/surveys/edit/${survey.id}`; }}
+                      onDelete={() => setSurveyToDelete(survey)}
+                      copied={copiedId === survey.id}
+                    />
                   </div>
-                  {getStatusBadge(survey.status)}
-                </div>
-                <p className="text-sm text-gray-600 line-clamp-2">{survey.description}</p>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs font-medium text-gray-500">{survey.questions.length} questions</span>
-                    <div className="flex items-center space-x-1">
-                      <button onClick={() => setPreviewSurvey(survey)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                        <Eye size={18} />
+                  {survey.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2">{survey.description}</p>
+                  )}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-xs text-gray-500">
+                      {responses !== undefined && <span className="font-semibold text-gray-900 tabular-nums">{responses}</span>}
+                      {responses !== undefined && <span> response{responses === 1 ? '' : 's'} · </span>}
+                      <span>{survey.questions.length} question{survey.questions.length === 1 ? '' : 's'}</span>
+                    </div>
+                    {survey.status === 'published' && canEdit && (
+                      <button
+                        onClick={() => setDistributeSurvey(survey)}
+                        className="inline-flex items-center px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+                      >
+                        <Mail size={14} className="mr-1.5" /> Distribute
                       </button>
-                      <button onClick={() => copyLink(survey.id)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <Copy size={18} />
-                    </button>
-                    <button onClick={() => setQrSurvey(survey)} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <QrCode size={18} />
-                    </button>
-                    <Link to={`/analytics/${survey.id}`} className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg">
-                      <BarChart3 size={18} />
-                    </Link>
-                    <Link to={`/surveys/edit/${survey.id}`} className="p-2 text-gray-400 hover:text-amber-600 rounded-lg">
-                      <Edit2 size={18} />
-                    </Link>
-                    <button onClick={() => setSurveyToDelete(survey)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg">
-                      <Trash2 size={18} />
-                    </button>
+                    )}
+                    {survey.status === 'draft' && canEdit && (
+                      <Link
+                        to={`/surveys/edit/${survey.id}`}
+                        className="inline-flex items-center px-2.5 py-1.5 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg"
+                      >
+                        <Edit2 size={14} className="mr-1.5" /> Edit
+                      </Link>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -451,7 +631,7 @@ export default function SurveyList() {
                   disabled={isDeleting}
                   className="w-full py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isDeleting ? 'Deleting...' : 'Yes, Delete Survey'}
+                  {isDeleting ? 'Deleting…' : 'Yes, Delete Survey'}
                 </button>
                 <button
                   onClick={() => setSurveyToDelete(null)}
@@ -485,14 +665,14 @@ export default function SurveyList() {
                     <p className="text-xs text-gray-500">Viewing as a customer</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setPreviewSurvey(null)}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                 >
                   <X size={24} />
                 </button>
               </div>
-              
+
               <div className="p-0 max-h-[80vh] overflow-y-auto bg-gray-50">
                 <SurveyResponse previewSurvey={previewSurvey} isPreview={true} />
               </div>
@@ -519,7 +699,7 @@ export default function SurveyList() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative"
             >
-              <button 
+              <button
                 onClick={() => setQrSurvey(null)}
                 className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
               >
