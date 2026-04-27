@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, Reorder, AnimatePresence } from 'motion/react';
+import { Reorder, AnimatePresence } from 'motion/react';
 import {
   Plus, Trash2, Save, ArrowLeft, GripVertical, Settings2, Eye, X,
 } from '../lib/icons';
@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
+import { ModalScaffold } from '@/components/ui/modal-scaffold';
 
 const DEFAULT_RATING_QUESTION = (): Question => ({
   id: `rating-${Date.now()}`,
@@ -281,49 +282,50 @@ export default function SurveyForm() {
       {/* Live Preview */}
       <AnimatePresence>
         {isPreviewOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="bg-card border border-border rounded-xl w-full max-w-4xl shadow-pop relative my-8 overflow-hidden"
-            >
-              <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md px-5 py-3 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-md bg-secondary text-foreground flex items-center justify-center">
-                    <Eye size={16} />
-                  </div>
-                  <div>
-                    <div className="eyebrow">live preview</div>
-                    <h3 className="heading text-[14px] font-semibold leading-none mt-0.5">
-                      Previewing unsaved changes
-                    </h3>
-                  </div>
+          <ModalScaffold
+            onClose={() => setIsPreviewOpen(false)}
+            size="xl"
+            bare
+            scrollable
+            className="relative my-8 overflow-hidden"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+          >
+            <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md px-5 py-3 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-md bg-secondary text-foreground flex items-center justify-center">
+                  <Eye size={16} />
                 </div>
-                <button
-                  onClick={() => setIsPreviewOpen(false)}
-                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
+                <div>
+                  <div className="eyebrow">live preview</div>
+                  <h3 className="heading text-[14px] font-semibold leading-none mt-0.5">
+                    Previewing unsaved changes
+                  </h3>
+                </div>
               </div>
-              <div className="max-h-[80vh] overflow-y-auto bg-background">
-                <SurveyResponse
-                  previewSurvey={{
-                    id: 'preview',
-                    title: title || 'Untitled survey',
-                    description: description || 'No description provided.',
-                    questions,
-                    status,
-                    createdAt: new Date().toISOString(),
-                  }}
-                  isPreview={true}
-                />
-              </div>
-            </motion.div>
-          </div>
+              <button
+                onClick={() => setIsPreviewOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="max-h-[80vh] overflow-y-auto bg-background">
+              <SurveyResponse
+                previewSurvey={{
+                  id: 'preview',
+                  title: title || 'Untitled survey',
+                  description: description || 'No description provided.',
+                  questions,
+                  status,
+                  createdAt: new Date().toISOString(),
+                }}
+                isPreview={true}
+              />
+            </div>
+          </ModalScaffold>
         )}
       </AnimatePresence>
     </div>

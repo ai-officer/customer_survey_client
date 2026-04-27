@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BrandLockup, BrandMark } from '@/components/ui/brand-mark';
+import { ModalScaffold } from '@/components/ui/modal-scaffold';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -76,66 +77,50 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/70 backdrop-blur-sm">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ duration: 0.15 }}
-        className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-pop space-y-5"
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="eyebrow">account · security</div>
-            <h3 className="heading text-[18px] font-semibold mt-1 leading-none">Change password</h3>
+    <ModalScaffold
+      onClose={onClose}
+      eyebrow="account · security"
+      title="Change password"
+      size="sm"
+      tier="top"
+    >
+      {success ? (
+        <div className="text-center py-4 space-y-3">
+          <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
+            <KeyRound size={18} />
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors -mr-1"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
+          <p className="text-[14px] font-medium">Password updated.</p>
+          <Button onClick={onClose} className="w-full">Done</Button>
         </div>
-
-        {success ? (
-          <div className="text-center py-4 space-y-3">
-            <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
-              <KeyRound size={18} />
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+              <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
+              {error}
             </div>
-            <p className="text-[14px] font-medium">Password updated.</p>
-            <Button onClick={onClose} className="w-full">Done</Button>
+          )}
+          <div className="space-y-1.5">
+            <Label>Current password</Label>
+            <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
-                <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
-                {error}
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label>Current password</Label>
-              <PasswordInput required value={currentPassword} onChange={setCurrentPassword} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>New password</Label>
-              <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Confirm new password</Label>
-              <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Saving…' : 'Save'}
-              </Button>
-            </div>
-          </form>
-        )}
-      </motion.div>
-    </div>
+          <div className="space-y-1.5">
+            <Label>New password</Label>
+            <PasswordInput required value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm new password</Label>
+            <PasswordInput required value={confirmPassword} onChange={setConfirmPassword} />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
+        </form>
+      )}
+    </ModalScaffold>
   );
 }
 

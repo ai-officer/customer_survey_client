@@ -3,21 +3,17 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
-import { QRCodeSVG } from 'qrcode.react';
 import {
-  Plus, Eye, Edit2, Trash2, CheckCircle2, AlertCircle, BarChart3, Copy, QrCode, X,
-  Download, CopyPlus, Mail, Bell, ChevronDown, ChevronUp, Archive,
+  Plus, Eye, Edit2, Trash2, AlertCircle, BarChart3, Copy, QrCode,
+  CopyPlus, Mail, Bell, ChevronDown, ChevronUp, Archive,
 } from '../lib/icons';
 import { SearchBar } from './ui/SearchBar';
 import { Survey, Department } from '../types';
 import { cn } from '../lib/utils';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import SurveyResponse from './SurveyResponse';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
@@ -26,6 +22,10 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { Pagination, paginate } from '@/components/ui/pagination';
+import { DistributeModal } from '@/components/surveys/distribute-modal';
+import { DeleteConfirmModal } from '@/components/surveys/delete-confirm-modal';
+import { PreviewModal } from '@/components/surveys/preview-modal';
+import { QrModal } from '@/components/surveys/qr-modal';
 
 type Tab = 'active' | 'draft' | 'archived';
 type SortKey = 'title' | 'createdAt' | 'responses';
@@ -50,140 +50,6 @@ const STATUS_VARIANT: Record<Survey['status'], 'primary' | 'outline' | 'default'
   draft: 'outline',
   archived: 'default',
 };
-
-// ── Distribute Modal ──────────────────────────────────────────────────────────
-
-function DistributeModal({ survey, onClose }: { survey: Survey; onClose: () => void }) {
-  const [emailInput, setEmailInput] = React.useState('');
-  const [emails, setEmails] = React.useState<string[]>([]);
-  const [sending, setSending] = React.useState(false);
-  const [sent, setSent] = React.useState(false);
-  const [error, setError] = React.useState('');
-
-  const addEmails = () => {
-    const parsed = emailInput.split(/[\s,;]+/).map(e => e.trim()).filter(e => e.includes('@'));
-    setEmails(prev => [...new Set([...prev, ...parsed])]);
-    setEmailInput('');
-  };
-
-  const handleSend = async () => {
-    if (emails.length === 0) return;
-    setSending(true);
-    setError('');
-    try {
-      await api.post(`/surveys/${survey.id}/distribute`, { emails });
-      setSent(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to distribute');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ duration: 0.15 }}
-        className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-pop space-y-5"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="eyebrow">distribute · invite</div>
-            <h3 className="heading text-[18px] font-semibold mt-1 leading-tight truncate">
-              {survey.title}
-            </h3>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors -mr-1"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {sent ? (
-          <div className="text-center py-6 space-y-3">
-            <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md flex items-center justify-center mx-auto">
-              <CheckCircle2 size={22} />
-            </div>
-            <p className="text-[14px] font-medium text-foreground">Invitations queued.</p>
-            <p className="text-[13px] text-muted-foreground">
-              Survey links are being sent to <span className="num text-foreground">{emails.length}</span>{' '}
-              recipient{emails.length !== 1 ? 's' : ''}.
-            </p>
-            <Button onClick={onClose} className="w-full mt-2">Done</Button>
-          </div>
-        ) : (
-          <>
-            {error && (
-              <div className="px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
-                <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="dist-input">Recipients</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="dist-input"
-                  value={emailInput}
-                  onChange={e => setEmailInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addEmails(); } }}
-                  placeholder="email@example.com, another@example.com"
-                  className="flex-1"
-                />
-                <Button onClick={addEmails} variant="outline">Add</Button>
-              </div>
-              <p className="text-[11.5px] text-muted-foreground mt-1">
-                Separate multiple addresses with commas, spaces, or press Enter.
-              </p>
-            </div>
-
-            {emails.length > 0 && (
-              <div className="space-y-1 max-h-48 overflow-y-auto -mx-1 px-1">
-                <div className="eyebrow mb-1.5 px-1">
-                  <span className="num text-foreground mr-1">{emails.length}</span>
-                  {emails.length === 1 ? 'recipient' : 'recipients'}
-                </div>
-                {emails.map(email => (
-                  <div
-                    key={email}
-                    className="flex items-center justify-between px-2.5 py-1.5 bg-secondary/50 rounded-md text-[13px] group"
-                  >
-                    <span className="text-foreground truncate">{email}</span>
-                    <button
-                      onClick={() => setEmails(emails.filter(e => e !== email))}
-                      className="text-muted-foreground hover:text-destructive p-0.5 transition-colors"
-                      aria-label={`Remove ${email}`}
-                    >
-                      <X size={13} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-2 pt-1">
-              <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-              <Button
-                onClick={handleSend}
-                disabled={sending || emails.length === 0}
-                className="flex-1"
-              >
-                {sending ? 'Sending…' : `Send ${emails.length > 0 ? `· ${emails.length}` : ''}`}
-              </Button>
-            </div>
-          </>
-        )}
-      </motion.div>
-    </div>
-  );
-}
 
 // ── Overflow Menu ─────────────────────────────────────────────────────────────
 
@@ -854,78 +720,22 @@ export default function SurveyList() {
       {/* Delete confirmation */}
       <AnimatePresence>
         {surveyToDelete && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.15 }}
-              className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-pop space-y-5"
-            >
-              <div className="space-y-1.5">
-                <div className="w-11 h-11 bg-red-50 border border-red-200 text-destructive rounded-md flex items-center justify-center">
-                  <Trash2 size={18} />
-                </div>
-                <div>
-                  <div className="eyebrow text-destructive">destructive · irreversible</div>
-                  <h3 className="heading text-[18px] font-semibold mt-1 leading-tight">
-                    Delete this survey?
-                  </h3>
-                </div>
-                <p className="text-[13px] text-muted-foreground pt-1">
-                  <span className="font-medium text-foreground">"{surveyToDelete.title}"</span> and all
-                  of its responses will be permanently removed. This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setSurveyToDelete(null)} disabled={isDeleting} className="flex-1">
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={deleteSurvey} disabled={isDeleting} className="flex-1">
-                  {isDeleting ? 'Deleting…' : 'Delete survey'}
-                </Button>
-              </div>
-            </motion.div>
-          </div>
+          <DeleteConfirmModal
+            survey={surveyToDelete}
+            isDeleting={isDeleting}
+            onClose={() => setSurveyToDelete(null)}
+            onConfirm={deleteSurvey}
+          />
         )}
       </AnimatePresence>
 
       {/* Preview */}
       <AnimatePresence>
         {previewSurvey && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="bg-card border border-border rounded-xl w-full max-w-4xl shadow-pop relative my-8 overflow-hidden"
-            >
-              <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md px-5 py-3 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-md bg-secondary text-foreground flex items-center justify-center">
-                    <Eye size={16} />
-                  </div>
-                  <div>
-                    <div className="eyebrow">preview</div>
-                    <h3 className="heading text-[14px] font-semibold leading-none mt-0.5">
-                      Viewing as a respondent
-                    </h3>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setPreviewSurvey(null)}
-                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="max-h-[80vh] overflow-y-auto bg-background">
-                <SurveyResponse previewSurvey={previewSurvey} isPreview={true} />
-              </div>
-            </motion.div>
-          </div>
+          <PreviewModal
+            survey={previewSurvey}
+            onClose={() => setPreviewSurvey(null)}
+          />
         )}
       </AnimatePresence>
 
@@ -942,58 +752,13 @@ export default function SurveyList() {
       {/* QR */}
       <AnimatePresence>
         {qrSurvey && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[color:var(--sidebar-bg)]/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.15 }}
-              className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-pop relative space-y-5"
-            >
-              <button
-                onClick={() => setQrSurvey(null)}
-                className="absolute right-3 top-3 p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-
-              <div>
-                <div className="eyebrow">shareable code</div>
-                <h3 className="heading text-[17px] font-semibold mt-1 leading-tight truncate">
-                  {qrSurvey.title}
-                </h3>
-                <p className="text-[12px] text-muted-foreground mt-1">
-                  Scan to open the respondent view.
-                </p>
-              </div>
-
-              <div className="flex justify-center py-2">
-                <div className="p-3 rounded-md bg-card border border-border">
-                  <QRCodeSVG
-                    id={`qr-code-${qrSurvey.id}`}
-                    value={`${window.location.origin}/s/${qrSurvey.id}`}
-                    size={200}
-                    level="H"
-                    includeMargin={false}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={() => copyLink(qrSurvey.id)}>
-                  {copiedId === qrSurvey.id ? (
-                    <><CheckCircle2 size={14} className="text-emerald-600" /> Copied</>
-                  ) : (
-                    <><Copy size={14} /> Copy link</>
-                  )}
-                </Button>
-                <Button onClick={() => downloadQR(qrSurvey.id, qrSurvey.title)}>
-                  <Download size={14} /> Download
-                </Button>
-              </div>
-            </motion.div>
-          </div>
+          <QrModal
+            survey={qrSurvey}
+            copied={copiedId === qrSurvey.id}
+            onClose={() => setQrSurvey(null)}
+            onCopyLink={copyLink}
+            onDownload={downloadQR}
+          />
         )}
       </AnimatePresence>
     </div>
