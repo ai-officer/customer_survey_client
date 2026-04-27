@@ -14,6 +14,8 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
 import { Pagination, paginate } from '@/components/ui/pagination';
+import { RibbonCell } from '@/components/ui/ribbon-cell';
+import { PageHero } from '@/components/ui/page-hero';
 import type { VariantProps } from 'class-variance-authority';
 
 type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
@@ -86,19 +88,17 @@ export default function AuditLogs() {
   return (
     <div className="space-y-7">
       {/* Editorial hero */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="eyebrow mb-2">administration · audit</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">Audit Log</h1>
-          <p className="text-[13px] text-muted-foreground mt-1.5 max-w-lg">
-            An immutable record of every privileged action. Used for compliance, investigation, and on-call review.
-          </p>
-        </div>
-        <Badge variant="primary" className="gap-1.5 shrink-0 self-start">
-          <Shield size={12} />
-          <span>Admin only</span>
-        </Badge>
-      </div>
+      <PageHero
+        eyebrow="administration · audit"
+        title="Audit Log"
+        description="An immutable record of every privileged action. Used for compliance, investigation, and on-call review."
+        action={
+          <Badge variant="primary" className="gap-1.5 shrink-0 self-start">
+            <Shield size={12} />
+            <span>Admin only</span>
+          </Badge>
+        }
+      />
 
       {/* Summary ribbon */}
       <Card className="overflow-hidden">
@@ -232,22 +232,3 @@ export default function AuditLogs() {
   );
 }
 
-function RibbonCell({
-  label, value, subtitle, trend,
-}: {
-  label: string; value: React.ReactNode; subtitle?: string; trend?: 'pos' | 'neg';
-}) {
-  return (
-    <div className="px-5 py-5 flex flex-col gap-1.5">
-      <div className="eyebrow">{label}</div>
-      <div className="num text-[26px] font-semibold text-foreground leading-none mt-1">{value}</div>
-      {subtitle && (
-        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
-          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
-          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-amber-500" aria-hidden />}
-          <span>{subtitle}</span>
-        </div>
-      )}
-    </div>
-  );
-}

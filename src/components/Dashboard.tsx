@@ -12,6 +12,8 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { Rating } from '@/components/ui/rating';
+import { RibbonCell } from '@/components/ui/ribbon-cell';
+import { PageHero } from '@/components/ui/page-hero';
 
 const ACCENT = '#134e4a';  // teal-900, matches --primary
 const ACCENT_SOFT = 'rgba(19, 78, 74, 0.18)';
@@ -35,25 +37,25 @@ function StatRibbon({
   return (
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-border">
-        <Cell label="Total responses" value={fmt(stats?.totalResponses)} />
-        <Cell
+        <RibbonCell label="Total responses" value={fmt(stats?.totalResponses)} />
+        <RibbonCell
           label="Active surveys"
           value={fmt(stats?.activeSurveys)}
           subtitle={`of ${stats?.surveyCount ?? 0} total`}
         />
-        <Cell
+        <RibbonCell
           label="Completion rate"
           value={loading ? '—' : `${stats?.completionRate ?? 0}%`}
         />
-        <Cell label="Avg. CSAT">
+        <RibbonCell label="Avg. CSAT">
           <div className="num text-[28px] font-semibold text-foreground leading-none">
             {csatValue == null ? '—' : csatValue.toFixed(1)}
           </div>
           <div className="mt-2.5">
             <Rating value={csatValue} showValue={false} size="sm" />
           </div>
-        </Cell>
-        <Cell
+        </RibbonCell>
+        <RibbonCell
           label="NPS score"
           value={nps == null ? '—' : nps.toFixed(1)}
           subtitle="net promoter"
@@ -61,38 +63,6 @@ function StatRibbon({
         />
       </div>
     </Card>
-  );
-}
-
-function Cell({
-  label,
-  value,
-  subtitle,
-  trend,
-  children,
-}: {
-  label: string;
-  value?: React.ReactNode;
-  subtitle?: string;
-  trend?: 'pos' | 'neg';
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="px-5 py-5 flex flex-col gap-1.5">
-      <div className="eyebrow">{label}</div>
-      {children ?? (
-        <div className="num text-[28px] font-semibold text-foreground leading-none mt-1">
-          {value}
-        </div>
-      )}
-      {subtitle && (
-        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
-          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
-          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-destructive" aria-hidden />}
-          <span>{subtitle}</span>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -252,24 +222,20 @@ export default function Dashboard() {
   return (
     <div className="space-y-7">
       {/* Page hero — editorial Fraunces display */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="eyebrow mb-2">overview</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">
-            Customer Satisfaction
-          </h1>
-          <p className="text-[13px] text-muted-foreground mt-1.5">
-            A consolidated view of every signal collected this period.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-[12px]">
-          <span
-            className={loading ? 'h-2 w-2 rounded-full bg-amber-500 animate-pulse' : 'h-2 w-2 rounded-full bg-emerald-600'}
-            aria-hidden
-          />
-          <span className="eyebrow">{loading ? 'syncing' : 'live'}</span>
-        </div>
-      </div>
+      <PageHero
+        eyebrow="overview"
+        title="Customer Satisfaction"
+        description="A consolidated view of every signal collected this period."
+        action={
+          <div className="flex items-center gap-2 text-[12px]">
+            <span
+              className={loading ? 'h-2 w-2 rounded-full bg-amber-500 animate-pulse' : 'h-2 w-2 rounded-full bg-emerald-600'}
+              aria-hidden
+            />
+            <span className="eyebrow">{loading ? 'syncing' : 'live'}</span>
+          </div>
+        }
+      />
 
       {/* Filter bar */}
       <Card className="p-3">

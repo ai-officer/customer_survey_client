@@ -16,6 +16,8 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
 import { Pagination, paginate } from '@/components/ui/pagination';
+import { RibbonCell } from '@/components/ui/ribbon-cell';
+import { PageHero } from '@/components/ui/page-hero';
 import { SearchBar } from './ui/SearchBar';
 
 const ROLES: UserRole[] = ['admin', 'manager'];
@@ -266,18 +268,16 @@ export default function UserManagement() {
   return (
     <div className="space-y-7">
       {/* Editorial hero */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="eyebrow mb-2">administration · directory</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">Users</h1>
-          <p className="text-[13px] text-muted-foreground mt-1.5">
-            Manage who has access to the console and what role they hold.
-          </p>
-        </div>
-        <Button onClick={() => setModalUser(null)} size="lg">
-          <Plus size={14} /> New user
-        </Button>
-      </div>
+      <PageHero
+        eyebrow="administration · directory"
+        title="Users"
+        description="Manage who has access to the console and what role they hold."
+        action={
+          <Button onClick={() => setModalUser(null)} size="lg">
+            <Plus size={14} /> New user
+          </Button>
+        }
+      />
 
       {/* Summary ribbon */}
       <Card className="overflow-hidden">
@@ -440,22 +440,3 @@ export default function UserManagement() {
   );
 }
 
-function RibbonCell({
-  label, value, subtitle, trend,
-}: {
-  label: string; value: React.ReactNode; subtitle?: string; trend?: 'pos' | 'neg';
-}) {
-  return (
-    <div className="px-5 py-5 flex flex-col gap-1.5">
-      <div className="eyebrow">{label}</div>
-      <div className="num text-[26px] font-semibold text-foreground leading-none mt-1">{value}</div>
-      {subtitle && (
-        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
-          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
-          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-amber-500" aria-hidden />}
-          <span>{subtitle}</span>
-        </div>
-      )}
-    </div>
-  );
-}

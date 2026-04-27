@@ -12,6 +12,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { RibbonCell } from '@/components/ui/ribbon-cell';
+import { PageHero } from '@/components/ui/page-hero';
 
 function initials(name: string) {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -122,23 +124,20 @@ export default function DepartmentManagement() {
   return (
     <div className="space-y-7">
       {/* Editorial hero */}
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <div className="eyebrow mb-2">administration · directory</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">Departments</h1>
-          <p className="text-[13px] text-muted-foreground mt-1.5 max-w-lg">
-            Manage the department list and see at-a-glance how each one is engaging with the survey programme.
-          </p>
-        </div>
-
-        <Button
-          onClick={() => setShowAddForm(v => !v)}
-          variant={showAddForm ? 'outline' : 'default'}
-          size="lg"
-        >
-          {showAddForm ? <><X size={14} /> Cancel</> : <><Plus size={14} /> New department</>}
-        </Button>
-      </div>
+      <PageHero
+        eyebrow="administration · directory"
+        title="Departments"
+        description="Manage the department list and see at-a-glance how each one is engaging with the survey programme."
+        action={
+          <Button
+            onClick={() => setShowAddForm(v => !v)}
+            variant={showAddForm ? 'outline' : 'default'}
+            size="lg"
+          >
+            {showAddForm ? <><X size={14} /> Cancel</> : <><Plus size={14} /> New department</>}
+          </Button>
+        }
+      />
 
       {/* Summary ribbon */}
       <Card className="overflow-hidden">
@@ -480,34 +479,6 @@ export default function DepartmentManagement() {
           )}
         </Card>
       </div>
-    </div>
-  );
-}
-
-function RibbonCell({
-  label,
-  value,
-  subtitle,
-  trend,
-}: {
-  label: string;
-  value: React.ReactNode;
-  subtitle?: string;
-  trend?: 'pos' | 'neg';
-}) {
-  return (
-    <div className="px-5 py-5 flex flex-col gap-1.5">
-      <div className="eyebrow">{label}</div>
-      <div className="num text-[26px] font-semibold text-foreground leading-none mt-1">
-        {value}
-      </div>
-      {subtitle && (
-        <div className="text-[11.5px] text-muted-foreground mt-1 flex items-center gap-1.5">
-          {trend === 'pos' && <span className="h-1 w-1 rounded-full bg-emerald-600" aria-hidden />}
-          {trend === 'neg' && <span className="h-1 w-1 rounded-full bg-amber-500" aria-hidden />}
-          <span>{subtitle}</span>
-        </div>
-      )}
     </div>
   );
 }
