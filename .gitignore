@@ -6,3 +6,23 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Playwright + Claude artefacts
+.playwright-mcp/
+.claude/
+.claude/worktrees/
+
+# Test screenshots
+*.png
+*.jpg
+*.jpeg
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!src/**/*.png
+!src/**/*.jpg
+!src/**/*.jpeg
+
+# Business documents (kept on disk, removed from index)
+*.docx
+*.pdf
