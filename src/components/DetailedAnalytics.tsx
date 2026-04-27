@@ -1,15 +1,25 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, TrendingUp, MessageSquare, PieChart as PieChartIcon, ThumbsUp, Download, UserRound, EyeOff, ChevronDown, ChevronUp } from '../lib/icons';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import {
+  ArrowLeft, Download, UserRound, EyeOff, ChevronDown, ChevronUp, MessageSquare,
+} from '../lib/icons';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { api } from '../lib/api';
 import { Survey, SurveyResponse } from '../types';
 import EngagementPanel from './EngagementPanel';
 import { DateRangePicker, DateRange } from './ui/DateRangePicker';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { RibbonCell } from '@/components/ui/ribbon-cell';
+import { PageHero } from '@/components/ui/page-hero';
+import { Rating } from '@/components/ui/rating';
 
-const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const ACCENT = '#134e4a';
 
 export default function DetailedAnalytics() {
   const { id } = useParams();
@@ -31,13 +41,10 @@ export default function DetailedAnalytics() {
     if (dateRange.endDate) params.append('end_date', new Date(dateRange.endDate + 'T23:59:59').toISOString());
     const qs = params.toString() ? `?${params}` : '';
 
-    // Per-survey analytics (custom shape)
     api.get<any>(`/analytics/${id}${qs}`)
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
 
-    // Dashboard analytics scoped to this survey — provides ratingDistribution,
-    // completionRate, previousCompletionRate, and departmentEngagement for the panel.
     const dashParams = new URLSearchParams(params);
     dashParams.append('survey_id', id || '');
     api.get<any>(`/analytics?${dashParams.toString()}`)
@@ -57,18 +64,18 @@ export default function DetailedAnalytics() {
 
   React.useEffect(() => { fetchData(); fetchResponses(); }, [id, dateRange.startDate, dateRange.endDate]);
 
-  const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
+  const handleExport = async (fmt: 'csv' | 'xlsx' | 'pdf') => {
     setExporting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/export/responses/${id}?format=${format}`, {
+      const res = await fetch(`/api/export/responses/${id}?format=${fmt}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `survey_responses_${id}.${format}`;
+      a.download = `survey_responses_${id}.${fmt}`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -78,241 +85,330 @@ export default function DetailedAnalytics() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-pulse text-gray-400 font-medium">Loading detailed analytics...</div>
+      <div className="eyebrow animate-pulse">loading analytics</div>
     </div>
   );
 
   if (!data) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="text-gray-400">Failed to load analytics</div>
+      <div className="text-[13px] text-muted-foreground">Failed to load analytics.</div>
     </div>
   );
 
+  const csatNumber = Number(data.csat) || 0;
+
   return (
-    <div className="space-y-6 md:space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <button onClick={() => navigate(-1)} className="flex items-center text-gray-500 hover:text-gray-900 transition-colors w-fit">
-          <ArrowLeft size={20} className="mr-2" /> Back
-        </button>
-        <div className="md:text-right">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{data.surveyTitle}</h2>
-          <p className="text-sm text-gray-500">Detailed Performance Report</p>
-        </div>
-      </div>
+    <div className="space-y-7 pb-12">
+      {/* Back link */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors w-fit"
+      >
+        <ArrowLeft size={15} /> Back to surveys
+      </button>
 
-      {/* Filters + Export */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-        <span className="text-sm font-medium text-gray-600 mr-1">Filters</span>
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
-        {dateRange.preset !== 'all' && (
-          <button onClick={() => setDateRange({ startDate: '', endDate: '', preset: 'all' })}
-            className="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 transition-all">
-            Reset
-          </button>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-gray-400 font-medium">Export:</span>
-          {(['csv', 'xlsx', 'pdf'] as const).map(fmt => (
-            <button key={fmt} onClick={() => handleExport(fmt)} disabled={exporting}
-              className="flex items-center px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all disabled:opacity-50">
-              <Download size={13} className="mr-1" /> {fmt.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Users size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Total Responses</span>
+      {/* Editorial hero */}
+      <PageHero
+        eyebrow="survey analytics"
+        title={data.surveyTitle}
+        description="Detailed performance, response distribution, and individual submissions."
+        action={
+          <div className="flex items-center gap-1.5">
+            {(['csv', 'xlsx', 'pdf'] as const).map(fmt => (
+              <Button
+                key={fmt}
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport(fmt)}
+                disabled={exporting}
+              >
+                <Download size={13} /> {fmt.toUpperCase()}
+              </Button>
+            ))}
           </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.totalResponses}</h3>
-        </div>
+        }
+      />
 
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><TrendingUp size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Response Rate</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.responseRate}</h3>
-          <p className="text-xs text-gray-400 mt-2">Based on distributed emails</p>
+      {/* Filters */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow pl-1 pr-2 shrink-0">filters</span>
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          {dateRange.preset !== 'all' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDateRange({ startDate: '', endDate: '', preset: 'all' })}
+            >
+              Reset
+            </Button>
+          )}
         </div>
+      </Card>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><PieChartIcon size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">Completion Rate</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.completionRate}</h3>
+      {/* KPI ribbon */}
+      <Card className="overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border">
+          <RibbonCell label="Total responses" value={data.totalResponses} />
+          <RibbonCell
+            label="Response rate"
+            value={data.responseRate}
+            subtitle="of distributed emails"
+          />
+          <RibbonCell label="Completion rate" value={data.completionRate} />
+          <RibbonCell label="Avg. CSAT">
+            <div className="num text-[28px] font-semibold leading-none mt-1">{data.csat}</div>
+            <div className="mt-2.5">
+              <Rating value={csatNumber} showValue={false} size="sm" />
+            </div>
+          </RibbonCell>
         </div>
+      </Card>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><ThumbsUp size={20} /></div>
-            <span className="text-sm font-medium text-gray-500">NPS Score</span>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">{data.nps}</h3>
-          <p className="text-xs text-gray-400 mt-2">CSAT: {data.csat}/5</p>
-        </div>
-      </div>
-
-      {/* Engagement Panel (Response distribution + Driver Heatmap) */}
+      {/* Engagement Panel (Response distribution + Driver heatmap) */}
       <EngagementPanel
         ratingDistribution={dashStats?.ratingDistribution ?? null}
         departmentEngagement={dashStats?.departmentEngagement ?? null}
         loading={loading}
       />
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">CSAT Score Over Time</h3>
-          <div className="h-64">
+      {/* CSAT trend + Common themes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div>
+              <div className="eyebrow mb-1">csat over time</div>
+              <CardTitle>Score trend</CardTitle>
+            </div>
+            <span className="num text-[12px] text-muted-foreground">{data.csat} avg</span>
+          </CardHeader>
+          <div className="px-3 pt-2 pb-3 flex-1 min-h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.csatOverTime}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                <YAxis domain={[0, 5]} axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5' }} />
-              </LineChart>
+              <AreaChart data={data.csatOverTime} margin={{ top: 8, right: 12, left: -8, bottom: 6 }}>
+                <defs>
+                  <linearGradient id="csat-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={ACCENT} stopOpacity={0.22} />
+                    <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="#e7e5e0" />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#8a857e', fontSize: 11, fontFamily: 'Geist Mono, ui-monospace, monospace' }}
+                />
+                <YAxis
+                  domain={[0, 5]}
+                  ticks={[0, 1, 2, 3, 4, 5]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#8a857e', fontSize: 11, fontFamily: 'Geist Mono, ui-monospace, monospace' }}
+                />
+                <Tooltip
+                  cursor={{ stroke: ACCENT, strokeOpacity: 0.4, strokeDasharray: '2 4' }}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: '1px solid #e7e5e0',
+                    boxShadow: '0 4px 14px -3px rgba(16,24,40,0.08)',
+                    fontFamily: 'Geist Mono, ui-monospace, monospace',
+                    fontSize: 11,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke={ACCENT}
+                  strokeWidth={1.75}
+                  fill="url(#csat-fill)"
+                  dot={{ r: 2.5, fill: ACCENT, strokeWidth: 0 }}
+                  activeDot={{ r: 4.5, fill: ACCENT, stroke: '#ffffff', strokeWidth: 2 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Common Feedback Themes</h3>
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div>
+              <div className="eyebrow mb-1">common themes</div>
+              <CardTitle>From open-ended responses</CardTitle>
+            </div>
+            <span className="num text-[12px] text-muted-foreground">
+              {data.commonThemes.length} {data.commonThemes.length === 1 ? 'theme' : 'themes'}
+            </span>
+          </CardHeader>
           {data.commonThemes.length > 0 ? (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.commonThemes} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="theme" type="category" axisLine={false} tickLine={false}
-                    tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }} width={100} />
-                  <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
-                    {data.commonThemes.map((_: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="px-5 py-5 flex-1 flex flex-col justify-center space-y-3">
+              {data.commonThemes.slice(0, 6).map((t: { theme: string; count: number }, i: number) => {
+                const max = Math.max(1, ...data.commonThemes.map((x: { count: number }) => x.count));
+                return (
+                  <motion.div
+                    key={t.theme}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="flex items-center gap-3 text-[13px]"
+                  >
+                    <span className="num text-[10.5px] text-muted-foreground w-5">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="w-32 truncate text-foreground capitalize">{t.theme}</span>
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(t.count / max) * 100}%` }}
+                        transition={{ delay: i * 0.04 + 0.1, duration: 0.4, ease: 'easeOut' }}
+                        className="h-full rounded-full"
+                        style={{ background: ACCENT }}
+                      />
+                    </div>
+                    <span className="num text-foreground w-7 text-right">{t.count}</span>
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-400 italic text-sm">
-              No text responses collected yet
+            <div className="flex-1 min-h-64 flex items-center justify-center text-[13px] text-muted-foreground italic">
+              No text responses collected yet.
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
-      {/* Individual Responses */}
-      <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-6 gap-2">
+      {/* Individual responses */}
+      <Card className="overflow-hidden">
+        <CardHeader>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Individual Responses</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Visible to the survey owner and administrators.
-            </p>
+            <div className="eyebrow mb-1">individual responses</div>
+            <CardTitle>{responses.length} submission{responses.length === 1 ? '' : 's'}</CardTitle>
           </div>
-          <span className="text-sm text-gray-400">{responses.length} submission{responses.length === 1 ? '' : 's'}</span>
-        </div>
+          <span className="eyebrow">visible to owner & admins</span>
+        </CardHeader>
 
         {responsesError && (
-          <div className="p-3 mb-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+          <div className="mx-5 mt-4 px-3 py-2 bg-red-50 border border-red-200 text-destructive rounded-md text-[13px]">
+            <span className="eyebrow text-destructive opacity-90 mr-1">error</span>
             {responsesError}
           </div>
         )}
 
         {responses.length === 0 && !responsesError ? (
-          <div className="text-center py-12 text-gray-400 italic">No responses yet.</div>
+          <div className="py-12 text-center text-[13px] text-muted-foreground italic">
+            No responses yet.
+          </div>
         ) : (
-          <div className="space-y-2">
+          <ul className="divide-y divide-border">
             {responses.map((r) => {
               const isOpen = expandedId === r.id;
               const displayName = r.isAnonymous
                 ? 'Anonymous'
                 : (r.respondentName?.trim() || 'Unnamed respondent');
               return (
-                <div key={r.id} className="border border-gray-100 rounded-xl overflow-hidden">
+                <li key={r.id}>
                   <button
                     type="button"
                     onClick={() => setExpandedId(isOpen ? null : r.id)}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                    className="w-full flex items-center justify-between gap-3 px-5 py-3 hover:bg-secondary/40 transition-colors text-left group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${r.isAnonymous ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-600'}`}>
-                        {r.isAnonymous ? <EyeOff size={16} /> : <UserRound size={16} />}
+                      <div
+                        className={`h-9 w-9 rounded-md flex items-center justify-center shrink-0 border ${
+                          r.isAnonymous
+                            ? 'bg-secondary text-muted-foreground border-border'
+                            : 'bg-foreground text-primary-foreground border-foreground'
+                        }`}
+                      >
+                        {r.isAnonymous ? <EyeOff size={14} /> : <UserRound size={14} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[13.5px] font-medium text-foreground truncate leading-tight">
+                          {displayName}
+                        </p>
+                        <p className="eyebrow mt-1">
                           {r.submittedAt ? format(new Date(r.submittedAt), 'MMM d, yyyy · h:mm a') : '—'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {!r.is_complete && (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[11px] font-medium border border-amber-100">
-                          Incomplete
-                        </span>
+                        <Badge variant="warning" className="normal-case tracking-normal">
+                          incomplete
+                        </Badge>
                       )}
-                      {isOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                      {isOpen
+                        ? <ChevronUp size={16} className="text-muted-foreground" />
+                        : <ChevronDown size={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />}
                     </div>
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 bg-gray-50/50 border-t border-gray-100 space-y-3">
-                      {(surveyMeta?.questions || []).map((q) => {
-                        const val = r.answers?.[q.id];
-                        const display =
-                          val === undefined || val === null || val === ''
-                            ? <span className="text-gray-400 italic">No answer</span>
-                            : typeof val === 'number'
-                            ? <span className="font-semibold text-blue-600">{val} / 5</span>
-                            : String(val);
-                        return (
-                          <div key={q.id} className="text-sm">
-                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">{q.text || '(untitled question)'}</p>
-                            <p className="text-gray-800 break-words whitespace-pre-wrap">{display}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.18 }}
+                      className="overflow-hidden bg-secondary/30 border-t border-border"
+                    >
+                      <div className="px-5 py-4 space-y-3">
+                        {(surveyMeta?.questions || []).map((q) => {
+                          const val = r.answers?.[q.id];
+                          const display =
+                            val === undefined || val === null || val === ''
+                              ? <span className="text-muted-foreground italic">No answer</span>
+                              : typeof val === 'number'
+                              ? <span className="num font-semibold text-foreground">{val} / 5</span>
+                              : String(val);
+                          return (
+                            <div key={q.id} className="text-[13px]">
+                              <div className="eyebrow mb-1">{q.text || '(untitled question)'}</div>
+                              <div className="text-foreground break-words whitespace-pre-wrap">{display}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
+                </li>
               );
             })}
+          </ul>
+        )}
+      </Card>
+
+      {/* Open-ended */}
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <div>
+            <div className="eyebrow mb-1">open-ended responses</div>
+            <CardTitle>Verbatim feedback</CardTitle>
+          </div>
+          <span className="num text-[12px] text-muted-foreground">
+            {data.openEndedResponses.length}
+          </span>
+        </CardHeader>
+        {data.openEndedResponses.length > 0 ? (
+          <ul className="divide-y divide-border">
+            {data.openEndedResponses.map((resp: string, i: number) => (
+              <motion.li
+                key={i}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className="px-5 py-4 flex items-start gap-3"
+              >
+                <div className="h-6 w-6 mt-0.5 rounded-md bg-secondary text-muted-foreground border border-border flex items-center justify-center shrink-0">
+                  <MessageSquare size={12} />
+                </div>
+                <p className="text-[13px] text-foreground leading-relaxed italic">"{resp}"</p>
+              </motion.li>
+            ))}
+          </ul>
+        ) : (
+          <div className="py-12 text-center text-[13px] text-muted-foreground italic">
+            No open-ended responses collected yet.
           </div>
         )}
-      </div>
-
-      {/* Open-ended responses */}
-      <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-900">Open-Ended Responses</h3>
-          <span className="text-sm text-gray-400">{data.openEndedResponses.length} responses</span>
-        </div>
-        <div className="space-y-4">
-          {data.openEndedResponses.length > 0 ? (
-            data.openEndedResponses.map((resp: string, i: number) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start space-x-4">
-                <div className="mt-1 p-1.5 bg-white rounded-lg border border-gray-200 text-gray-400">
-                  <MessageSquare size={14} />
-                </div>
-                <p className="text-sm text-gray-700 leading-relaxed italic">"{resp}"</p>
-              </motion.div>
-            ))
-          ) : (
-            <div className="text-center py-12 text-gray-400 italic">
-              No open-ended responses collected yet for this survey.
-            </div>
-          )}
-        </div>
-      </div>
+      </Card>
     </div>
   );
 }

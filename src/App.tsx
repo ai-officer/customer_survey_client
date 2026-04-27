@@ -43,7 +43,6 @@ function AppRoutes() {
               <Route path="/surveys" element={<SurveyList />} />
               <Route path="/surveys/new" element={<SurveyForm />} />
               <Route path="/surveys/edit/:id" element={<SurveyForm />} />
-              <Route path="/analytics" element={<Dashboard />} />
               <Route path="/analytics/:id" element={<DetailedAnalytics />} />
               <Route path="/settings" element={
                 <div className="p-8 bg-white rounded-2xl border border-gray-100">

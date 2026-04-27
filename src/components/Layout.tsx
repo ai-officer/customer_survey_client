@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, ClipboardList, BarChart3, LogOut, Menu, X, Users, Shield,
+  LayoutDashboard, ClipboardList, LogOut, Menu, X, Users, Shield,
   Building2, KeyRound, Eye, EyeOff,
 } from '../lib/icons';
 import { motion, AnimatePresence } from 'motion/react';
@@ -164,7 +164,6 @@ export default function Layout({ children }: LayoutProps) {
       items: [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: ClipboardList, label: 'Surveys', path: '/surveys' },
-        { icon: BarChart3, label: 'Analytics', path: '/analytics' },
       ],
     },
     ...(isAdmin ? [{
