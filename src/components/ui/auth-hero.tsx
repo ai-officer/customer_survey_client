@@ -69,7 +69,7 @@ export function AuthHero() {
                 fillOpacity: 0.07,
               }}
             >
-              gcg
+              GCG
             </text>
             <text
               x="60"
@@ -83,7 +83,7 @@ export function AuthHero() {
                 fillOpacity: 0.07,
               }}
             >
-              gcg
+              GCG
             </text>
           </pattern>
         </defs>
