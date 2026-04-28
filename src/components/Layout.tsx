@@ -196,7 +196,15 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       {/* Mobile Header */}
-      <header className="md:hidden sidebar-dark h-14 flex items-center justify-between px-4 sticky top-0 z-40 border-b border-border">
+      <header className="md:hidden sidebar-dark h-14 flex items-center justify-between px-4 sticky top-0 z-40 border-b border-border relative">
+        <div
+          className="absolute top-0 inset-x-0 h-1 z-10"
+          style={{
+            background:
+              'linear-gradient(90deg, var(--gcg-red) 0%, var(--gcg-red) 50%, var(--gcg-blue) 50%, var(--gcg-blue) 100%)',
+          }}
+          aria-hidden
+        />
         <BrandLockup inverted compact size={26} />
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -207,7 +215,16 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar (Desktop, always expanded for density) */}
-      <aside className="hidden md:flex sidebar-dark w-64 flex-col sticky top-0 h-screen border-r border-border">
+      <aside className="hidden md:flex sidebar-dark w-64 flex-col sticky top-0 h-screen border-r border-border relative">
+        {/* GCG dual-color brand strip across the top */}
+        <div
+          className="absolute top-0 inset-x-0 h-1 z-10"
+          style={{
+            background:
+              'linear-gradient(90deg, var(--gcg-red) 0%, var(--gcg-red) 50%, var(--gcg-blue) 50%, var(--gcg-blue) 100%)',
+          }}
+          aria-hidden
+        />
         <div className="h-16 px-5 flex items-center border-b border-border">
           <Link to="/"><BrandLockup inverted size={32} /></Link>
         </div>

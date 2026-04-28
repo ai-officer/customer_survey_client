@@ -101,10 +101,10 @@ export function AuthHero() {
 
         <div>
           <div className="display text-[52px] leading-[0.95] tracking-tight text-[color:var(--sidebar-fg)]">
-            Global Officium
+            Global Comfort
           </div>
           <div className="display text-[52px] leading-[0.95] tracking-tight text-[color:var(--sidebar-muted-fg)]">
-            Limited.
+            Group.
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export function AuthHeroMobile() {
     <div className="md:hidden flex items-center gap-2.5 pb-2">
       <BrandMark size={34} />
       <div className="leading-tight">
-        <div className="text-[14px] font-semibold text-foreground">Global Officium Ltd.</div>
+        <div className="text-[14px] font-semibold text-foreground">Global Comfort Group</div>
         <div className="eyebrow mt-0.5">customer survey system</div>
       </div>
     </div>

@@ -77,7 +77,7 @@ export function BrandLockup({
               inverted ? 'text-[color:var(--sidebar-muted-fg)]' : 'text-muted-foreground',
             )}
           >
-            Global Officium
+            Global Comfort Group
           </span>
         </span>
       )}

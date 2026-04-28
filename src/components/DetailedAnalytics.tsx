@@ -19,7 +19,7 @@ import { RibbonCell } from '@/components/ui/ribbon-cell';
 import { PageHero } from '@/components/ui/page-hero';
 import { Rating } from '@/components/ui/rating';
 
-const ACCENT = '#134e4a';
+const ACCENT = '#C8242E';  // GCG Red
 
 export default function DetailedAnalytics() {
   const { id } = useParams();

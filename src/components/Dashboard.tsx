@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/select';
 import { Rating } from '@/components/ui/rating';
 
-const ACCENT = '#134e4a';  // teal-900, matches --primary
-const ACCENT_SOFT = 'rgba(19, 78, 74, 0.18)';
+const ACCENT = '#C8242E';  // GCG Red, matches --primary
+const ACCENT_SOFT = 'rgba(200, 36, 46, 0.18)';
 
 /**
  * Horizontal stat ribbon — denser than a grid of cards. A single container

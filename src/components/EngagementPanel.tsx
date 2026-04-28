@@ -108,7 +108,7 @@ export default function EngagementPanel({
                   label={{ value: 'responses', angle: -90, position: 'insideLeft', fill: '#78716c', fontSize: 10, fontFamily: 'JetBrains Mono, ui-monospace, monospace', offset: 12 }}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(29, 78, 216, 0.08)' }}
+                  cursor={{ fill: 'rgba(200, 36, 46, 0.08)' }}
                   contentStyle={{
                     borderRadius: 8,
                     border: '1px solid #e7e5e4',
@@ -116,7 +116,7 @@ export default function EngagementPanel({
                     fontFamily: 'JetBrains Mono, ui-monospace, monospace',
                   }}
                 />
-                <Bar dataKey="value" fill="#134e4a" radius={[2, 2, 0, 0]} barSize={32}>
+                <Bar dataKey="value" fill="#C8242E" radius={[2, 2, 0, 0]} barSize={32}>
                   <LabelList
                     dataKey="value"
                     position="top"
