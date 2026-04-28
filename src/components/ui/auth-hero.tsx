@@ -15,15 +15,27 @@ import { BrandMark, BrandLockup } from './brand-mark';
 export function AuthHero() {
   return (
     <aside className="sidebar-dark relative hidden md:flex flex-col justify-between p-12 overflow-hidden">
-      {/* Layer 1 — soft gradient mesh wash (two radial glows + a faint linear) */}
+      {/* Layer 1 — GCG dual-color gradient wash: red glow upper-left, blue glow
+         lower-right, plus a soft blurred white-ish highlight in the middle. */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: [
-            'radial-gradient(circle at 18% 22%, oklch(0.78 0.13 175 / 0.10) 0%, transparent 38%)',
-            'radial-gradient(circle at 82% 78%, oklch(0.78 0.13 175 / 0.07) 0%, transparent 45%)',
-            'linear-gradient(135deg, transparent 0%, oklch(0.78 0.13 175 / 0.02) 70%, transparent 100%)',
+            'radial-gradient(circle at 18% 22%, oklch(0.62 0.22 25 / 0.22) 0%, transparent 42%)',
+            'radial-gradient(circle at 82% 78%, oklch(0.55 0.20 264 / 0.22) 0%, transparent 48%)',
+            'radial-gradient(circle at 50% 50%, oklch(0.97 0.005 250 / 0.06) 0%, transparent 55%)',
+            'linear-gradient(135deg, oklch(0.62 0.22 25 / 0.04) 0%, transparent 50%, oklch(0.55 0.20 264 / 0.04) 100%)',
           ].join(','),
+        }}
+        aria-hidden
+      />
+
+      {/* Soft blurred white spotlight — gives the "blurred light" QA asked for */}
+      <div
+        className="absolute -top-32 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full pointer-events-none"
+        style={{
+          background: 'oklch(1 0 0 / 0.06)',
+          filter: 'blur(80px)',
         }}
         aria-hidden
       />
@@ -38,8 +50,8 @@ export function AuthHero() {
       >
         <defs>
           <linearGradient id="watermark-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="oklch(0.78 0.13 175)" stopOpacity="0.045" />
-            <stop offset="100%" stopColor="oklch(0.78 0.13 175)" stopOpacity="0.015" />
+            <stop offset="0%" stopColor="oklch(0.62 0.22 25)" stopOpacity="0.10" />
+            <stop offset="100%" stopColor="oklch(0.55 0.20 264)" stopOpacity="0.05" />
           </linearGradient>
         </defs>
         <text
@@ -66,15 +78,15 @@ export function AuthHero() {
         viewBox="0 0 100 100"
         aria-hidden
       >
-        {[30, 38, 46, 54].map((r) => (
+        {[30, 38, 46, 54].map((r, i) => (
           <circle
             key={r}
             cx="50"
             cy="50"
             r={r}
             fill="none"
-            stroke="oklch(0.78 0.13 175)"
-            strokeOpacity={0.08}
+            stroke={i % 2 === 0 ? 'oklch(0.62 0.22 25)' : 'oklch(0.55 0.20 264)'}
+            strokeOpacity={0.12}
             strokeWidth={0.3}
           />
         ))}
