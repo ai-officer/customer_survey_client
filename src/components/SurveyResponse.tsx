@@ -13,10 +13,14 @@ interface SurveyResponseProps {
 export default function SurveyResponse({ previewSurvey, isPreview = false }: SurveyResponseProps) {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  // Per-recipient invite token from the email link (?t=...). When present
-  // the backend dedupes by token instead of by IP+UA, so two recipients on
-  // the same office network can both submit their own response.
-  const inviteToken = searchParams.get('t') || undefined;
+  // Token resolution order:
+  //   1. ?t= from the email link (per-recipient single-use)
+  //   2. otherwise, mint a fresh anonymous scan-token on page load (per QR scan)
+  // The backend dedupes by token, so two devices on the same Wi-Fi can each
+  // submit their own response without colliding on IP+UA fingerprint.
+  const urlToken = searchParams.get('t') || undefined;
+  const [scanToken, setScanToken] = React.useState<string | undefined>(undefined);
+  const inviteToken = urlToken || scanToken;
   const [survey, setSurvey] = React.useState<Survey | null>(previewSurvey || null);
   const [answers, setAnswers] = React.useState<Record<string, any>>({});
   const [respondentName, setRespondentName] = React.useState('');
@@ -41,6 +45,19 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
         });
     }
   }, [id, previewSurvey]);
+
+  // Mint a per-scan token if the URL didn't carry one (QR / public landing).
+  // Single-fire — once we have a token we keep it for the life of this
+  // page mount, so refreshes inside the same tab dedupe correctly.
+  React.useEffect(() => {
+    if (previewSurvey || isPreview) return;
+    if (urlToken || scanToken) return;
+    if (!id) return;
+    fetch(`/api/surveys/${id}/scan-token`, { method: 'POST' })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (data?.token) setScanToken(data.token); })
+      .catch(() => {});
+  }, [id, urlToken, scanToken, previewSurvey, isPreview]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
