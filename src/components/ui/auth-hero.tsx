@@ -40,34 +40,54 @@ export function AuthHero() {
         aria-hidden
       />
 
-      {/* Layer 2 — oversized "C" watermark, a brand crest behind the wordmark */}
+      {/* Layer 2 — repeating 'gcg' wordmark texture across the panel.
+         Two staggered rows per tile (offset second row) so it reads as a
+         woven pattern rather than a stiff grid. Uses SVG <pattern> so the
+         tile resolves once and tiles across at any panel size. */}
       <svg
-        className="absolute right-[-120px] top-1/2 -translate-y-1/2 pointer-events-none"
-        width="720"
-        height="720"
-        viewBox="0 0 100 100"
+        className="absolute inset-0 w-full h-full pointer-events-none"
         aria-hidden
       >
         <defs>
-          <linearGradient id="watermark-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="oklch(0.62 0.22 25)" stopOpacity="0.10" />
-            <stop offset="100%" stopColor="oklch(0.55 0.20 264)" stopOpacity="0.05" />
-          </linearGradient>
+          <pattern
+            id="gcg-watermark"
+            x="0"
+            y="0"
+            width="120"
+            height="64"
+            patternUnits="userSpaceOnUse"
+          >
+            <text
+              x="0"
+              y="22"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: '0.02em',
+                fill: 'oklch(0.62 0.22 25)',
+                fillOpacity: 0.07,
+              }}
+            >
+              gcg
+            </text>
+            <text
+              x="60"
+              y="54"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: '0.02em',
+                fill: 'oklch(0.55 0.20 264)',
+                fillOpacity: 0.07,
+              }}
+            >
+              gcg
+            </text>
+          </pattern>
         </defs>
-        <text
-          x="50"
-          y="78"
-          textAnchor="middle"
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontWeight: 700,
-            fontSize: 94,
-            letterSpacing: '-0.06em',
-            fill: 'url(#watermark-grad)',
-          }}
-        >
-          C
-        </text>
+        <rect width="100%" height="100%" fill="url(#gcg-watermark)" />
       </svg>
 
       {/* Layer 3 — thin concentric arc decoration (top-right quadrant) */}
