@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { CheckCircle2, Send, Star, Eye, AlertCircle } from '../lib/icons';
 import { Survey } from '../types';
@@ -12,6 +12,11 @@ interface SurveyResponseProps {
 
 export default function SurveyResponse({ previewSurvey, isPreview = false }: SurveyResponseProps) {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  // Per-recipient invite token from the email link (?t=...). When present
+  // the backend dedupes by token instead of by IP+UA, so two recipients on
+  // the same office network can both submit their own response.
+  const inviteToken = searchParams.get('t') || undefined;
   const [survey, setSurvey] = React.useState<Survey | null>(previewSurvey || null);
   const [answers, setAnswers] = React.useState<Record<string, any>>({});
   const [respondentName, setRespondentName] = React.useState('');
@@ -56,6 +61,7 @@ export default function SurveyResponse({ previewSurvey, isPreview = false }: Sur
         answers,
         respondent_name: isAnonymous ? null : respondentName.trim(),
         is_anonymous: isAnonymous,
+        token: inviteToken,
       })
     });
     if (response.ok) {
