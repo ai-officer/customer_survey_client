@@ -28,7 +28,7 @@ export function PageHero({ eyebrow, title, description, action, className }: Pag
           />
           <div className="eyebrow">{eyebrow}</div>
         </div>
-        <h1 className="display text-[32px] text-foreground leading-tight">{title}</h1>
+        <h1 className="section-title text-[32px] leading-tight">{title}</h1>
         {description && (
           <p className="text-[13px] text-muted-foreground mt-1.5 max-w-lg">{description}</p>
         )}

@@ -269,7 +269,7 @@ export default function UserManagement() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="eyebrow mb-2">administration · directory</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">Users</h1>
+          <h1 className="section-title text-[32px] leading-tight">Users</h1>
           <p className="text-[13px] text-muted-foreground mt-1.5">
             Manage who has access to the console and what role they hold.
           </p>

@@ -255,7 +255,7 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="eyebrow mb-2">overview</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">
+          <h1 className="section-title text-[32px] leading-tight">
             Customer Satisfaction
           </h1>
           <p className="text-[13px] text-muted-foreground mt-1.5">

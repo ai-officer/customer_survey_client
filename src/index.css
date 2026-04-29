@@ -87,15 +87,15 @@
   --viz-2: oklch(0.530 0.205 25);                  /* red (primary chart series) */
   --viz-3: oklch(0.650 0.220 15);                  /* rose / tertiary */
 
-  /* === Dark surface (sidebar) — defined here so .sidebar-dark can reassign === */
-  --sidebar-bg: oklch(0.195 0.030 265);            /* #0f172a  deep ink */
-  --sidebar-fg: oklch(0.925 0.015 250);            /* #e5edf5  soft cream-slate */
-  --sidebar-surface: oklch(0.235 0.030 262);       /* slightly lifted surface */
-  --sidebar-muted: oklch(0.280 0.028 262);
-  --sidebar-muted-fg: oklch(0.660 0.025 255);      /* slate-400 */
-  --sidebar-border: oklch(0.290 0.028 262);
-  --sidebar-accent: oklch(0.640 0.220 25);         /* bright GCG-red tint — active state inside dark */
-  --sidebar-accent-secondary: oklch(0.620 0.180 264); /* GCG-blue tint, used for dual-color trim */
+  /* === Brand-blue surface (sidebar) — deep GCG blue with red as the punctuation === */
+  --sidebar-bg: oklch(0.295 0.140 264);            /* deep brand blue, dark enough for white text */
+  --sidebar-fg: oklch(0.965 0.012 240);            /* near-white with the slightest cool cast */
+  --sidebar-surface: oklch(0.355 0.150 264);       /* lifted card / popover within sidebar */
+  --sidebar-muted: oklch(0.395 0.150 264);         /* hover background */
+  --sidebar-muted-fg: oklch(0.760 0.050 245);      /* readable secondary text on blue */
+  --sidebar-border: oklch(0.405 0.140 264);        /* visible blue-violet hairline */
+  --sidebar-accent: oklch(0.660 0.230 25);         /* GCG red — active state, pops on blue */
+  --sidebar-accent-secondary: oklch(0.760 0.150 250); /* lighter blue tint for dual-color trim */
 }
 
 /* Cascading dark surface — drop on any element and every child inherits dark tokens.
@@ -119,8 +119,20 @@
   --accent: var(--sidebar-accent);
   --accent-foreground: var(--sidebar-bg);
 
-  background: var(--sidebar-bg);
+  /* Layered atmosphere — faint red glow top-left, deeper blue glow bottom-right.
+     Echoes the dual-color brand strip without competing with content. */
+  background:
+    radial-gradient(ellipse 520px 320px at 0% 0%, oklch(0.620 0.220 25 / 0.18), transparent 60%),
+    radial-gradient(ellipse 600px 700px at 110% 110%, oklch(0.480 0.220 264 / 0.45), transparent 65%),
+    var(--sidebar-bg);
   color: var(--sidebar-fg);
+}
+
+/* Eyebrows nested inside the sidebar pick up a soft red tint so the dual-color
+   identity lives inside the surface — not just at its edges. */
+.sidebar-dark .eyebrow {
+  color: oklch(0.760 0.130 25);                    /* dusty red-rose */
+  letter-spacing: 0.13em;
 }
 
 @layer base {
@@ -223,6 +235,21 @@
   .chart-grid {
     stroke: var(--border);
     stroke-dasharray: 2 4;
+  }
+
+  /* Section title — GCG red display heading. The dominant editorial mark of
+     a page. Used on top-bar page titles, page-hero titles, and any h1.display
+     that should carry brand emphasis. Inside .sidebar-dark surfaces it falls
+     back to the sidebar foreground so it stays legible. */
+  .section-title {
+    color: var(--gcg-red);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    line-height: 1.08;
+  }
+  .sidebar-dark .section-title {
+    color: var(--sidebar-fg);
   }
 }
 

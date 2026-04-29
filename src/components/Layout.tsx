@@ -387,10 +387,20 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-background">
         <header className="hidden md:flex h-16 bg-background/80 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-center gap-3">
+            <span
+              className="inline-block h-[3px] w-5 rounded-full"
+              style={{ background: 'var(--gcg-red)' }}
+              aria-hidden
+            />
+            <span
+              className="inline-block h-[3px] w-2 rounded-full"
+              style={{ background: 'var(--gcg-blue)' }}
+              aria-hidden
+            />
             <span className="eyebrow">{isAdmin && location.pathname.startsWith('/settings') ? 'administration' : 'workspace'}</span>
-            <span className="text-muted-foreground/50">·</span>
-            <h1 className="display text-[18px] text-foreground leading-none">{pageTitle}</h1>
+            <span className="text-muted-foreground/40">·</span>
+            <h1 className="section-title text-[18px] leading-none">{pageTitle}</h1>
           </div>
           <div className="relative" ref={userMenuRef}>
             <button

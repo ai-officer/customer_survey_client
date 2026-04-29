@@ -496,7 +496,7 @@ export default function SurveyList() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="eyebrow mb-2">workspace</div>
-          <h1 className="display text-[32px] text-foreground leading-tight">Surveys</h1>
+          <h1 className="section-title text-[32px] leading-tight">Surveys</h1>
           <p className="text-[13px] text-muted-foreground mt-1.5 max-w-lg">
             Draft, publish, and distribute surveys. Review responses as they come in.
           </p>
