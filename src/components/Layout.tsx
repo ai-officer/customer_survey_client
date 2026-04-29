@@ -386,7 +386,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-background">
-        <header className="hidden md:flex h-16 bg-background/80 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30">
+        <header className="sidebar-dark hidden md:flex h-16 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <span
               className="inline-block h-[3px] w-5 rounded-full"
@@ -411,7 +411,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="text-[13px] font-medium text-foreground">{user?.full_name || ''}</p>
                 <p className="eyebrow">{user?.role || ''}</p>
               </div>
-              <div className="w-8 h-8 rounded-md text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center" style={{ background: 'var(--sidebar-bg)' }}>
+              <div className="w-8 h-8 rounded-md text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center" style={{ background: 'var(--sidebar-surface)' }}>
                 {initials}
               </div>
             </button>

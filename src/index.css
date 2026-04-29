@@ -248,9 +248,8 @@
     letter-spacing: -0.028em;
     line-height: 1.08;
   }
-  .sidebar-dark .section-title {
-    color: var(--sidebar-fg);
-  }
+  /* Inside sidebar-dark surfaces .section-title keeps the brand red so the
+     dual-color identity (blue territory / red focal moments) holds. */
 }
 
 /* Scrollbar */
