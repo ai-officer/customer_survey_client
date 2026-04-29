@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an improvement to the customer survey client (new survey question type, dashboard view, response form UX, etc.).
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem you're trying to solve
+      description: What is the user pain or business need? Who is affected (admins building surveys, respondents filling them out, etc.)?
+      placeholder: Survey admins have no way to preview a survey on mobile before sending invites.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the change you'd like to see. Include UI sketches or flow notes if helpful.
+      placeholder: Add a "Preview on mobile" toggle in the survey editor that renders the response form in a phone-sized frame.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about and why you didn't pick them.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to related issues, screenshots, customer quotes, or anything else useful.
+    validations:
+      required: false

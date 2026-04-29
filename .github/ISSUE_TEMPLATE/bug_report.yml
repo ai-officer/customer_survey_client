@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a defect in the customer survey client (UI glitch, broken survey response flow, auth issue, etc.).
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug. Include the page or component (e.g. login, dashboard, survey response form) and any error messages shown.
+      placeholder: When I submitted the survey response form, the page froze and no toast appeared.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Describe the behavior you expected instead.
+      placeholder: I expected a confirmation toast and to be redirected to the thank-you screen.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps so we can reliably reproduce the bug.
+      placeholder: |
+        1. Open survey link with ?t=<invite-token>
+        2. Fill in all required questions
+        3. Click Submit
+        4. Observe the frozen page
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser + OS
+      description: e.g. Chrome 124 on macOS 14, Safari 17 on iOS 17, Firefox 125 on Windows 11.
+      placeholder: Chrome 124 on macOS 14
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop screenshots or screen recordings here. Optional but very helpful for UI bugs.
+    validations:
+      required: false
