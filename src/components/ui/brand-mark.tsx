@@ -15,10 +15,10 @@ interface BrandMarkProps {
 export function BrandMark({ size = 36, inverted = false, className }: BrandMarkProps) {
   // Wider tile so the three glyphs read clearly with breathing room.
   const width = size * 2.1;
-  // Inverted (on dark sidebar): tile blends into the surface and glyphs
-  // brighten so the dual-color identity stays legible.
+  // Inverted (on dark sidebar): tile is transparent so it inherits the
+  // surrounding sidebar surface (incl. atmospheric overlay) seamlessly.
   // Default (on light surface): dark tile with full-saturation brand glyphs.
-  const tileBg = inverted ? 'var(--sidebar-bg)' : 'var(--foreground)';
+  const tileBg = inverted ? 'transparent' : 'var(--foreground)';
   const blue = inverted ? 'var(--sidebar-accent-secondary)' : 'var(--gcg-blue)';
   const red = inverted ? 'oklch(0.74 0.20 25)' : 'var(--gcg-red)';
   return (
