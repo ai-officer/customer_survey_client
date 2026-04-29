@@ -12,7 +12,7 @@ interface AuthContextValue {
   canEdit: boolean;
 }
 
-const AuthContext = React.createContext<AuthContextValue>(null!);
+export const AuthContext = React.createContext<AuthContextValue>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AuthUser | null>(() => {
