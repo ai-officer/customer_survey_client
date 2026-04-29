@@ -26,7 +26,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AppRoutes() {
+export function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
