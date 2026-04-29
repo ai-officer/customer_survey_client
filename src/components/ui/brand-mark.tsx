@@ -8,42 +8,40 @@ interface BrandMarkProps {
 }
 
 /**
- * Identity mark: a single upright "C" in Instrument Sans on a dark tile with
- * an accent dot. Uses the brand typography so the mark and the wordmark
- * stay coherent at all sizes.
+ * Identity mark: the dual-color "GCG" monogram on a tile. G (blue) · C (red) ·
+ * G (blue) — uses the brand typography so the mark and wordmark stay coherent
+ * at all sizes. Tile aspect is wider than tall to fit the three glyphs.
  */
 export function BrandMark({ size = 36, inverted = false, className }: BrandMarkProps) {
+  // Wider tile so the three glyphs read clearly with breathing room.
+  const width = size * 2.1;
+  // Inverted (on dark sidebar): tile blends into the surface and glyphs
+  // brighten so the dual-color identity stays legible.
+  // Default (on light surface): dark tile with full-saturation brand glyphs.
+  const tileBg = inverted ? 'var(--sidebar-bg)' : 'var(--foreground)';
+  const blue = inverted ? 'var(--sidebar-accent-secondary)' : 'var(--gcg-blue)';
+  const red = inverted ? 'oklch(0.74 0.20 25)' : 'var(--gcg-red)';
   return (
     <span
       className={cn(
         'relative inline-flex items-center justify-center shrink-0 rounded-md',
-        inverted ? 'bg-sidebar-fg' : 'bg-foreground',
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width, height: size, paddingInline: size * 0.15, background: tileBg }}
       aria-hidden
     >
       <span
         className="font-sans font-bold leading-none"
         style={{
-          fontSize: size * 0.55,
-          color: inverted ? 'var(--sidebar-bg)' : 'var(--primary)',
-          letterSpacing: '-0.04em',
+          fontSize: size * 0.6,
+          letterSpacing: '-0.03em',
           marginTop: -1,
         }}
       >
-        C
+        <span style={{ color: blue }}>G</span>
+        <span style={{ color: red }}>C</span>
+        <span style={{ color: blue }}>G</span>
       </span>
-      <span
-        className="absolute rounded-full"
-        style={{
-          bottom: size * 0.12,
-          right: size * 0.12,
-          width: size * 0.13,
-          height: size * 0.13,
-          background: inverted ? 'var(--sidebar-bg)' : 'var(--primary)',
-        }}
-      />
     </span>
   );
 }

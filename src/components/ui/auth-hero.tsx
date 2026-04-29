@@ -40,50 +40,66 @@ export function AuthHero() {
         aria-hidden
       />
 
-      {/* Layer 2 — repeating 'gcg' wordmark texture across the panel.
-         Two staggered rows per tile (offset second row) so it reads as a
-         woven pattern rather than a stiff grid. Uses SVG <pattern> so the
-         tile resolves once and tiles across at any panel size. */}
+      {/* Layer 2 — repeating GCG watermark across the panel. Each tile renders
+         G (blue) · C (red) · G (blue) with a pronounced dual drop-shadow so the
+         letterforms feel pressed into the surface. */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
         aria-hidden
       >
         <defs>
+          {/* Dual dark drop-shadow — solid colored glyphs sit above a soft
+             far shadow plus a tighter contact shadow, so the dual-color
+             letterforms feel pressed into the deep blue surface. */}
+          <filter id="gcg-emboss" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur" />
+            <feOffset in="blur" dx="0" dy="9" result="shape" />
+            <feFlood floodColor="oklch(0.06 0.05 264)" floodOpacity="0.75" result="color" />
+            <feComposite in="color" in2="shape" operator="in" result="drop" />
+            <feMerge>
+              <feMergeNode in="drop" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
           <pattern
             id="gcg-watermark"
             x="0"
             y="0"
-            width="120"
-            height="64"
+            width="280"
+            height="160"
             patternUnits="userSpaceOnUse"
           >
             <text
               x="0"
-              y="22"
+              y="58"
+              filter="url(#gcg-emboss)"
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontWeight: 700,
-                fontSize: 16,
-                letterSpacing: '0.02em',
-                fill: 'oklch(0.62 0.22 25)',
-                fillOpacity: 0.07,
+                fontWeight: 800,
+                fontSize: 56,
+                letterSpacing: '-0.01em',
+                fillOpacity: 0.18,
               }}
             >
-              GCG
+              <tspan fill="oklch(0.55 0.20 264)">G</tspan>
+              <tspan fill="oklch(0.62 0.22 25)">C</tspan>
+              <tspan fill="oklch(0.55 0.20 264)">G</tspan>
             </text>
             <text
-              x="60"
-              y="54"
+              x="140"
+              y="138"
+              filter="url(#gcg-emboss)"
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontWeight: 700,
-                fontSize: 16,
-                letterSpacing: '0.02em',
-                fill: 'oklch(0.55 0.20 264)',
-                fillOpacity: 0.07,
+                fontWeight: 800,
+                fontSize: 56,
+                letterSpacing: '-0.01em',
+                fillOpacity: 0.18,
               }}
             >
-              GCG
+              <tspan fill="oklch(0.55 0.20 264)">G</tspan>
+              <tspan fill="oklch(0.62 0.22 25)">C</tspan>
+              <tspan fill="oklch(0.55 0.20 264)">G</tspan>
             </text>
           </pattern>
         </defs>
@@ -118,35 +134,35 @@ export function AuthHero() {
       </div>
 
       {/* Content — center wordmark composition */}
-      <div className="relative flex flex-col items-start gap-5 max-w-md">
+      <div className="relative flex flex-col items-start gap-7 max-w-2xl">
         {/* small banner strip */}
-        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-surface)]/40">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-surface)]/40">
           <span
-            className="h-1.5 w-1.5 rounded-full"
+            className="h-2 w-2 rounded-full"
             style={{ background: 'var(--sidebar-accent)' }}
             aria-hidden
           />
-          <span className="eyebrow text-[color:var(--sidebar-muted-fg)]">
+          <span className="eyebrow text-[12px] text-[color:var(--sidebar-muted-fg)]">
             enterprise edition · 2026
           </span>
         </div>
 
         <div>
-          <div className="display text-[52px] leading-[0.95] tracking-tight text-[color:var(--sidebar-fg)]">
+          <div className="display text-[80px] leading-[0.92] tracking-tight text-[color:var(--sidebar-fg)]">
             Global Comfort
           </div>
-          <div className="display text-[52px] leading-[0.95] tracking-tight text-[color:var(--sidebar-muted-fg)]">
+          <div className="display text-[80px] leading-[0.92] tracking-tight text-[color:var(--sidebar-muted-fg)]">
             Group.
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-3 mt-2">
           <span
-            className="h-px w-8"
+            className="h-[2px] w-12"
             style={{ background: 'var(--sidebar-accent)' }}
             aria-hidden
           />
-          <span className="eyebrow text-[color:var(--sidebar-muted-fg)]">
+          <span className="eyebrow text-[12px] text-[color:var(--sidebar-muted-fg)]">
             customer survey system
           </span>
         </div>

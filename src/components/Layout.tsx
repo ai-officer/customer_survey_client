@@ -411,7 +411,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="text-[13px] font-medium text-foreground">{user?.full_name || ''}</p>
                 <p className="eyebrow">{user?.role || ''}</p>
               </div>
-              <div className="w-8 h-8 rounded-md bg-foreground text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center">
+              <div className="w-8 h-8 rounded-md text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center" style={{ background: 'var(--sidebar-bg)' }}>
                 {initials}
               </div>
             </button>
