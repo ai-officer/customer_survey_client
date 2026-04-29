@@ -4,5 +4,19 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Env files
 .env*
 !.env.example
+.env.local
+.env.*.local
+
+# Tooling caches and local agent artifacts
+.playwright-mcp/
+.claude/
+
+# Local design / spec artifacts that should not be tracked
+*.docx
+*.pdf
+# Loose PNG artifacts at the repo root only (keep src/, dist/, public/ images)
+/*.png
