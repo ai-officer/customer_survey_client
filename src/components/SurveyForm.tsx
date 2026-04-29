@@ -125,8 +125,9 @@ export default function SurveyForm() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-24">
-      {/* Sticky action bar */}
-      <div className="sticky top-0 z-30 -mx-4 md:-mx-8 px-4 md:px-8 py-3 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between gap-3">
+      {/* Action bar — scrolls with content so it doesn't double-stack on top
+         of the global sidebar-blue page header. */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-border">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
