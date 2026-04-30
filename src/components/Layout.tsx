@@ -386,7 +386,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-background">
-        <header className="sidebar-dark hidden md:flex h-16 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30">
+        <header className="sidebar-dark hidden md:flex h-16 backdrop-blur-sm border-b border-border items-center justify-between px-8 sticky top-0 z-30 text-white">
           <div className="flex items-center gap-3">
             <span
               className="inline-block h-[3px] w-5 rounded-full"
@@ -398,9 +398,9 @@ export default function Layout({ children }: LayoutProps) {
               style={{ background: 'var(--gcg-blue)' }}
               aria-hidden
             />
-            <span className="eyebrow">{isAdmin && location.pathname.startsWith('/settings') ? 'administration' : 'workspace'}</span>
-            <span className="text-muted-foreground/40">·</span>
-            <h1 className="section-title text-[18px] leading-none">{pageTitle}</h1>
+            <span className="eyebrow" style={{ color: 'white' }}>{isAdmin && location.pathname.startsWith('/settings') ? 'administration' : 'workspace'}</span>
+            <span className="text-white/40">·</span>
+            <h1 className="section-title text-[18px] leading-none" style={{ color: 'white' }}>{pageTitle}</h1>
           </div>
           <div className="relative" ref={userMenuRef}>
             <button
@@ -408,8 +408,8 @@ export default function Layout({ children }: LayoutProps) {
               className="flex items-center gap-2.5 hover:bg-secondary rounded-md pl-2 pr-1 py-1 transition-colors"
             >
               <div className="text-right leading-tight">
-                <p className="text-[13px] font-medium text-foreground">{user?.full_name || ''}</p>
-                <p className="eyebrow">{user?.role || ''}</p>
+                <p className="text-[13px] font-medium text-white">{user?.full_name || ''}</p>
+                <p className="eyebrow" style={{ color: 'white' }}>{user?.role || ''}</p>
               </div>
               <div className="w-8 h-8 rounded-md text-[color:var(--sidebar-fg)] font-mono text-[11px] font-semibold flex items-center justify-center" style={{ background: 'var(--sidebar-surface)' }}>
                 {initials}
